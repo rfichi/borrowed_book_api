@@ -3,26 +3,23 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import HTMLResponse
 import secrets
-from database import engine, Base
-from routers import books_router, users_router
-from routers.auth import router as auth_router
+from database import engine, Base, get_db
+from routers import borrow_router
 from config import get_settings
 from sqlalchemy.orm import Session
-from database import get_db
 from models import AuthAccount
-from services import create_user_with_password
 from security import create_access_token
+from models import User, AuthAccount
+from security import get_password_hash
 
 settings = get_settings()
 security_basic = HTTPBasic()
 
-app = FastAPI(title="Borrowed Book System", docs_url=None, redoc_url=None, openapi_url="/openapi.json")
+app = FastAPI(title="Borrowed Book System - Borrow Service", docs_url=None, redoc_url=None, openapi_url="/openapi.json")
 
 Base.metadata.create_all(bind=engine)
 
-app.include_router(books_router)
-app.include_router(users_router)
-app.include_router(auth_router)
+app.include_router(borrow_router)
 
 
 def docs_auth(credentials: HTTPBasicCredentials = Depends(security_basic)) -> HTTPBasicCredentials:
@@ -43,7 +40,7 @@ def custom_openapi():
     openapi_schema = get_openapi(
         title=app.title,
         version="0.1.0",
-        description="Borrowed Book System",
+        description="Borrowed Book System - Borrow Service",
         routes=app.routes,
     )
     if "components" in openapi_schema and "securitySchemes" in openapi_schema["components"]:
@@ -59,13 +56,22 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
+def ensure_docs_user(db: Session, email: str, password: str):
+    account = db.query(AuthAccount).filter(AuthAccount.email == email).first()
+    if not account:
+        user = User(name="Docs", email=email)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        account = AuthAccount(user_id=user.id, email=email, password_hash=get_password_hash(password))
+        db.add(account)
+        db.commit()
+
 
 @app.get("/docs", include_in_schema=False)
 def docs(credentials: HTTPBasicCredentials = Depends(docs_auth), db: Session = Depends(get_db)):
     email = "docs@example.com"
-    account = db.query(AuthAccount).filter(AuthAccount.email == email).first()
-    if not account:
-        create_user_with_password(db, name="Docs", email=email, password=settings.DOCS_PASSWORD)
+    ensure_docs_user(db, email, settings.DOCS_PASSWORD)
     token = create_access_token({"sub": email})
     html = f"""
     <!DOCTYPE html>

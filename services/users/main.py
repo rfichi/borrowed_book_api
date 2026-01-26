@@ -3,24 +3,21 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import HTMLResponse
 import secrets
-from database import engine, Base
-from routers import books_router, users_router
-from routers.auth import router as auth_router
+from database import engine, Base, get_db
+from routers import users_router, auth_router
 from config import get_settings
 from sqlalchemy.orm import Session
-from database import get_db
 from models import AuthAccount
-from services import create_user_with_password
+from service import create_user_with_password
 from security import create_access_token
 
 settings = get_settings()
 security_basic = HTTPBasic()
 
-app = FastAPI(title="Borrowed Book System", docs_url=None, redoc_url=None, openapi_url="/openapi.json")
+app = FastAPI(title="Borrowed Book System - Users Service", docs_url=None, redoc_url=None, openapi_url="/openapi.json")
 
 Base.metadata.create_all(bind=engine)
 
-app.include_router(books_router)
 app.include_router(users_router)
 app.include_router(auth_router)
 
@@ -43,7 +40,7 @@ def custom_openapi():
     openapi_schema = get_openapi(
         title=app.title,
         version="0.1.0",
-        description="Borrowed Book System",
+        description="Borrowed Book System - Users Service",
         routes=app.routes,
     )
     if "components" in openapi_schema and "securitySchemes" in openapi_schema["components"]:
