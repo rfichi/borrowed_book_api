@@ -38,3 +38,31 @@ outgoing public ip: <OUTGOING_IP>
 Pending, the api is enabled, but before creating the cloud run service, I need to have at least one docker image push to artifact registry, here is the repository I created -> <ARTIFACT_REGISTRY_REPO>
 - Confirm cost controls: scale-to-zero, no min instances, and stopping Cloud SQL when idle.
 255$ free credit, should be enough
+
+---
+API Gateway Plan:
+1. Enable Required APIs:
+   gcloud services enable apigateway.googleapis.com servicecontrol.googleapis.com servicemanagement.googleapis.com
+
+2. Update api_gateway_config.yaml:
+   Replace all instances of `https://*-service-REPLACE_ME.us-central1.run.app` with the actual Cloud Run URLs for your deployed services.
+
+3. Create API Definition:
+   gcloud api-gateway apis create borrow-api --project=<PROJECT_ID>
+
+4. Create API Config (upload spec):
+   gcloud api-gateway api-configs create borrow-config-v1 \
+     --api=borrow-api --openapi-spec=api_gateway_config.yaml \
+     --project=<PROJECT_ID> --backend-auth-service-account=<YOUR_SERVICE_ACCOUNT_EMAIL>
+
+   Note: You can find your default compute service account email via:
+   gcloud iam service-accounts list
+
+5. Create Gateway (Deploy):
+   gcloud api-gateway gateways create borrow-gateway \
+     --api=borrow-api --api-config=borrow-config-v1 \
+     --location=us-central1 --project=<PROJECT_ID>
+
+6. Get Gateway URL:
+   gcloud api-gateway gateways describe borrow-gateway \
+     --location=us-central1 --project=<PROJECT_ID> --format="get(defaultHostname)"
