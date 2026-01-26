@@ -1,0 +1,42 @@
+ok, things to take into account:
+
+1) Every new change should be on a new branch called feature/migrate_local_api_to_gcp.
+2) Everything on the plan that was needed from my side is already done, gcloud cli and docker client are working from any windows shell, added the path on the environment variables already.
+3) I updated your list, let me know if we are ready to start now, here is the list:
+- Create a new GCP project and set it active.[Done]
+teak-strength-485420-v3
+- Attach billing and confirm free credits availability.[Done]
+- Enable APIs: Cloud Run, Artifact Registry, Cloud Build, Cloud SQL Admin, IAM.[Done]
+- Install and authenticate gcloud CLI; configure project and region (e.g., us-central1).[Done]
+- Create an Artifact Registry (Docker) repo; configure Docker credential helper for gcloud.[Done]
+us-central1-docker.pkg.dev/teak-strength-485420-v3/borrow-api-repo
+- Decide on primary DB:
+- Preferred: Cloud SQL Postgres (PostgreSQL 18, db-f1-micro). [Agreed]
+- Fallback: Always Free f1-micro VM running Postgres via Docker.[Agreed]
+- For Cloud SQL:
+- Create the instance, database, and application user/password.[Done]
+instance name: free-borrow-instance-db
+instance_password: <REDACTED>
+db_name: borrow-db
+schema_name: borrow_schema
+user: borrow_user
+password: <REDACTED>
+- Note INSTANCE_CONNECTION_NAME and provide it.[Done]
+- Choose microservice names and structure (e.g., users-service, books-service, borrow-service). I’ll scaffold these as separate folders with their own Dockerfiles.
+Those names work for me ./services/users, ./services/books, etc... Also each service should have Dockerfile and requirements.txt, keep in mind the gcp_fastapi_poc_plan.md
+- Provide any required environment values:
+project_id: teak-strength-485420-v3
+tags: environment=dev
+- DATABASE_URL format expected for Cloud SQL/VM.[Done]
+conexion_name: teak-strength-485420-v3:us-central1:free-borrow-instance-db
+public conexion: enabled
+incomming public ip: <REDACTED>
+outgoing public ip: <REDACTED>
+- Shared internal API key for inter-service calls (if desired).[Managed via Secret Manager]
+- JWT secret and token expiry values.[Managed via Secret Manager]
+- Confirm public access policy for Cloud Run (POC: allow unauthenticated) and target region.
+Pending, the api is enabled, but before creating the cloud run service, I need to have at least one docker image push to artifact registry, here is the repository I created -> us-central1-docker.pkg.dev/teak-strength-485420-v3/borrow-api-repo
+- Confirm cost controls: scale-to-zero, no min instances, and stopping Cloud SQL when idle.
+255$ free credit, should be enough
+
+
