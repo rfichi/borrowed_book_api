@@ -15,7 +15,13 @@ from security import get_password_hash
 settings = get_settings()
 security_basic = HTTPBasic()
 
-app = FastAPI(title="Borrowed Book System - Borrow Service", docs_url=None, redoc_url=None, openapi_url="/openapi.json")
+app = FastAPI(
+    title="Borrowed Book System - Borrow Service",
+    docs_url=None,
+    redoc_url=None,
+    openapi_url="/openapi.json",
+    redirect_slashes=False,
+)
 
 Base.metadata.create_all(bind=engine)
 

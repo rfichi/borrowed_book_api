@@ -31,6 +31,7 @@ def me(current_user: UserOut = Depends(get_current_user)) -> UserOut:
 
 
 @users_router.post("/", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+@users_router.post("", response_model=UserOut, status_code=status.HTTP_201_CREATED, include_in_schema=False)
 def create_user_endpoint(payload: UserCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> UserOut:
     user = create_user(db, payload)
     return user
@@ -45,6 +46,7 @@ def get_user_endpoint(user_id: int, db: Session = Depends(get_db), current_user=
 
 
 @users_router.get("/", response_model=UserListOut)
+@users_router.get("", response_model=UserListOut, include_in_schema=False)
 def list_users_endpoint(page: int = 1, page_size: int = 20, db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> UserListOut:
     total, items = list_users(db, page, page_size)
     return {"page": page, "page_size": page_size, "total": total, "results": items}
