@@ -4,39 +4,65 @@ ok, things to take into account:
 2) Everything on the plan that was needed from my side is already done, gcloud cli and docker client are working from any windows shell, added the path on the environment variables already.
 3) I updated your list, let me know if we are ready to start now, here is the list:
 - Create a new GCP project and set it active.[Done]
-teak-strength-485420-v3
+<PROJECT_ID>
 - Attach billing and confirm free credits availability.[Done]
 - Enable APIs: Cloud Run, Artifact Registry, Cloud Build, Cloud SQL Admin, IAM.[Done]
 - Install and authenticate gcloud CLI; configure project and region (e.g., us-central1).[Done]
 - Create an Artifact Registry (Docker) repo; configure Docker credential helper for gcloud.[Done]
-us-central1-docker.pkg.dev/teak-strength-485420-v3/borrow-api-repo
+<ARTIFACT_REGISTRY_REPO>
 - Decide on primary DB:
 - Preferred: Cloud SQL Postgres (PostgreSQL 18, db-f1-micro). [Agreed]
 - Fallback: Always Free f1-micro VM running Postgres via Docker.[Agreed]
 - For Cloud SQL:
 - Create the instance, database, and application user/password.[Done]
-instance name: free-borrow-instance-db
-instance_password: <REDACTED>
+instance name: <INSTANCE_NAME>
+instance_password: <INSTANCE_PASSWORD>
 db_name: borrow-db
 schema_name: borrow_schema
 user: borrow_user
-password: <REDACTED>
+password: <DB_PASSWORD>
 - Note INSTANCE_CONNECTION_NAME and provide it.[Done]
 - Choose microservice names and structure (e.g., users-service, books-service, borrow-service). I’ll scaffold these as separate folders with their own Dockerfiles.
 Those names work for me ./services/users, ./services/books, etc... Also each service should have Dockerfile and requirements.txt, keep in mind the gcp_fastapi_poc_plan.md
 - Provide any required environment values:
-project_id: teak-strength-485420-v3
+project_id: <PROJECT_ID>
 tags: environment=dev
 - DATABASE_URL format expected for Cloud SQL/VM.[Done]
-conexion_name: teak-strength-485420-v3:us-central1:free-borrow-instance-db
+conexion_name: <CONNECTION_NAME>
 public conexion: enabled
-incomming public ip: <REDACTED>
-outgoing public ip: <REDACTED>
-- Shared internal API key for inter-service calls (if desired).[Managed via Secret Manager]
-- JWT secret and token expiry values.[Managed via Secret Manager]
+incomming public ip: <PUBLIC_IP>
+outgoing public ip: <OUTGOING_IP>
+- Shared internal API key for inter-service calls (if desired).[Public]
+- JWT secret and token expiry values.[Public]
 - Confirm public access policy for Cloud Run (POC: allow unauthenticated) and target region.
-Pending, the api is enabled, but before creating the cloud run service, I need to have at least one docker image push to artifact registry, here is the repository I created -> us-central1-docker.pkg.dev/teak-strength-485420-v3/borrow-api-repo
+Pending, the api is enabled, but before creating the cloud run service, I need to have at least one docker image push to artifact registry, here is the repository I created -> <ARTIFACT_REGISTRY_REPO>
 - Confirm cost controls: scale-to-zero, no min instances, and stopping Cloud SQL when idle.
 255$ free credit, should be enough
 
+---
+API Gateway Plan:
+1. Enable Required APIs:
+   gcloud services enable apigateway.googleapis.com servicecontrol.googleapis.com servicemanagement.googleapis.com
 
+2. Update api_gateway_config.yaml:
+   Replace all instances of `https://*-service-REPLACE_ME.us-central1.run.app` with the actual Cloud Run URLs for your deployed services.
+
+3. Create API Definition:
+   gcloud api-gateway apis create borrow-api --project=<PROJECT_ID>
+
+4. Create API Config (upload spec):
+   gcloud api-gateway api-configs create borrow-config-v1 \
+     --api=borrow-api --openapi-spec=api_gateway_config.yaml \
+     --project=<PROJECT_ID> --backend-auth-service-account=<YOUR_SERVICE_ACCOUNT_EMAIL>
+
+   Note: You can find your default compute service account email via:
+   gcloud iam service-accounts list
+
+5. Create Gateway (Deploy):
+   gcloud api-gateway gateways create borrow-gateway \
+     --api=borrow-api --api-config=borrow-config-v1 \
+     --location=us-central1 --project=<PROJECT_ID>
+
+6. Get Gateway URL:
+   gcloud api-gateway gateways describe borrow-gateway \
+     --location=us-central1 --project=<PROJECT_ID> --format="get(defaultHostname)"

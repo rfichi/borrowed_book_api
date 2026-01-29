@@ -1,0 +1,159 @@
+swagger: '2.0'
+info:
+  title: Borrowed Book API Gateway
+  description: Gateway for Users, Books, and Borrow microservices
+  version: 1.0.0
+schemes:
+  - https
+produces:
+  - application/json
+paths:
+  # Users Service
+  /auth/signup:
+    post:
+      summary: Signup a new user
+      operationId: signup
+      x-google-backend:
+        address: https://users-service-REPLACE_ME.us-central1.run.app
+      responses:
+        '201':
+          description: User created
+  /auth/token:
+    post:
+      summary: Login to get access token
+      operationId: login
+      x-google-backend:
+        address: https://users-service-REPLACE_ME.us-central1.run.app
+      responses:
+        '200':
+          description: Access token
+  /auth/me:
+    get:
+      summary: Get current user
+      operationId: me
+      x-google-backend:
+        address: https://users-service-REPLACE_ME.us-central1.run.app
+      responses:
+        '200':
+          description: Current user
+  /users/:
+    get:
+      summary: List users
+      operationId: listUsers
+      x-google-backend:
+        address: https://users-service-REPLACE_ME.us-central1.run.app
+      responses:
+        '200':
+          description: List of users
+    post:
+      summary: Create user
+      operationId: createUser
+      x-google-backend:
+        address: https://users-service-REPLACE_ME.us-central1.run.app
+      responses:
+        '201':
+          description: User created
+  /users/{user_id}:
+    get:
+      summary: Get user by ID
+      operationId: getUser
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          type: integer
+      x-google-backend:
+        address: https://users-service-REPLACE_ME.us-central1.run.app
+      responses:
+        '200':
+          description: User details
+  /users/{user_id}/borrow-history:
+    get:
+      summary: Get user borrow history
+      operationId: getUserHistory
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          type: integer
+      x-google-backend:
+        address: https://users-service-REPLACE_ME.us-central1.run.app
+      responses:
+        '200':
+          description: History
+
+  # Books Service
+  /books/:
+    get:
+      summary: List books
+      operationId: listBooks
+      x-google-backend:
+        address: https://books-service-REPLACE_ME.us-central1.run.app
+      responses:
+        '200':
+          description: List of books
+    post:
+      summary: Create book
+      operationId: createBook
+      x-google-backend:
+        address: https://books-service-REPLACE_ME.us-central1.run.app
+      responses:
+        '201':
+          description: Book created
+  /books/{book_id}:
+    get:
+      summary: Get book by ID
+      operationId: getBook
+      parameters:
+        - in: path
+          name: book_id
+          required: true
+          type: integer
+      x-google-backend:
+        address: https://books-service-REPLACE_ME.us-central1.run.app
+      responses:
+        '200':
+          description: Book details
+    delete:
+      summary: Delete book
+      operationId: deleteBook
+      parameters:
+        - in: path
+          name: book_id
+          required: true
+          type: integer
+      x-google-backend:
+        address: https://books-service-REPLACE_ME.us-central1.run.app
+      responses:
+        '204':
+          description: Book deleted
+
+  # Borrow Service
+  /borrow/{book_id}/borrow:
+    post:
+      summary: Borrow a book
+      operationId: borrowBook
+      parameters:
+        - in: path
+          name: book_id
+          required: true
+          type: integer
+      x-google-backend:
+        address: https://borrow-service-REPLACE_ME.us-central1.run.app
+      responses:
+        '202':
+          description: Borrowed
+  /borrow/{book_id}/return:
+    post:
+      summary: Return a book
+      operationId: returnBook
+      parameters:
+        - in: path
+          name: book_id
+          required: true
+          type: integer
+      x-google-backend:
+        address: https://borrow-service-REPLACE_ME.us-central1.run.app
+      responses:
+        '202':
+          description: Returned
