@@ -147,5 +147,74 @@ def test_gateway():
     else:
         print(f"   Return Book FAILED: {resp.status_code} {resp.text}")
 
+    # 8. Borrow History
+    print(f"8. Borrow History for user {user_id}")
+    resp = requests.get(f"{GATEWAY_URL}/users/{user_id}/borrow-history", headers=get_headers(token))
+    if resp.status_code == 200:
+        history = resp.json()
+        print(f"   Borrow History SUCCESS: {len(history)} records")
+    else:
+        print(f"   Borrow History FAILED: {resp.status_code} {resp.text}")
+
+    # 9. Edge Cases: Non-existent User/Book
+    print("9. Testing Edge Cases (Non-existent User/Book)")
+    
+    # 9.1 Borrow with Non-existent User
+    non_existent_user_id = 999999
+    print(f"   9.1 Borrowing book {book_id} with non-existent user {non_existent_user_id}")
+    resp = requests.post(
+        f"{GATEWAY_URL}/borrow/{book_id}/borrow",
+        json={"user_id": non_existent_user_id},
+        headers=get_headers(token)
+    )
+    if resp.status_code == 404:
+        print("   Borrow with non-existent user: SUCCESS (Got 404)")
+    else:
+        print(f"   Borrow with non-existent user: FAILED (Expected 404, got {resp.status_code} {resp.text})")
+
+    # 9.2 Borrow Non-existent Book
+    non_existent_book_id = 999999
+    print(f"   9.2 Borrowing non-existent book {non_existent_book_id}")
+    resp = requests.post(
+        f"{GATEWAY_URL}/borrow/{non_existent_book_id}/borrow",
+        json={"user_id": user_id},
+        headers=get_headers(token)
+    )
+    if resp.status_code == 404:
+        print("   Borrow non-existent book: SUCCESS (Got 404)")
+    else:
+        print(f"   Borrow non-existent book: FAILED (Expected 404, got {resp.status_code} {resp.text})")
+
+    # 9.3 Return with Non-existent User
+    print(f"   9.3 Returning book {book_id} with non-existent user {non_existent_user_id}")
+    resp = requests.post(
+        f"{GATEWAY_URL}/borrow/{book_id}/return",
+        json={"user_id": non_existent_user_id},
+        headers=get_headers(token)
+    )
+    # Depending on implementation, returning might check user existence.
+    # If the borrow record exists for the book but not the user... wait, the borrow record is tied to a user.
+    # If we pass a random user_id, it should fail because the borrow record belongs to someone else (if we check matching user)
+    # OR if we check user existence first, it should return 404 User Not Found.
+    # Let's assume strict user validation first.
+    if resp.status_code == 404:
+        print("   Return with non-existent user: SUCCESS (Got 404)")
+    elif resp.status_code == 403: # Or maybe forbidden if book borrowed by someone else
+         print(f"   Return with non-existent user: Got 403 (Might be expected if checking ownership first)")
+    else:
+        print(f"   Return with non-existent user: FAILED (Expected 404 or 403, got {resp.status_code} {resp.text})")
+
+    # 9.4 Return Non-existent Book
+    print(f"   9.4 Returning non-existent book {non_existent_book_id}")
+    resp = requests.post(
+        f"{GATEWAY_URL}/borrow/{non_existent_book_id}/return",
+        json={"user_id": user_id},
+        headers=get_headers(token)
+    )
+    if resp.status_code == 404:
+        print("   Return non-existent book: SUCCESS (Got 404)")
+    else:
+        print(f"   Return non-existent book: FAILED (Expected 404, got {resp.status_code} {resp.text})")
+
 if __name__ == "__main__":
     test_gateway()

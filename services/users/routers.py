@@ -7,7 +7,7 @@ from service import (
     create_user, get_user, list_users, get_user_borrow_history,
     create_user_with_password, authenticate_user
 )
-from security import get_current_user
+from security import get_current_user, get_current_user_or_internal_api_key
 
 users_router = APIRouter(prefix="/users", tags=["users"])
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
@@ -38,7 +38,7 @@ def create_user_endpoint(payload: UserCreate, db: Session = Depends(get_db), cur
 
 
 @users_router.get("/{user_id}", response_model=UserOut)
-def get_user_endpoint(user_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> UserOut:
+def get_user_endpoint(user_id: int, db: Session = Depends(get_db), auth=Depends(get_current_user_or_internal_api_key)) -> UserOut:
     user = get_user(db, user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
