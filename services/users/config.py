@@ -13,6 +13,7 @@ class Settings:
         self.ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
         self.DOCS_USERNAME = os.getenv("DOCS_USERNAME", "admin")
         self.DOCS_PASSWORD = os.getenv("DOCS_PASSWORD", "admin")
+        self.INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY", "super-secret-key-for-gcp-poc")
 
 
 @lru_cache(maxsize=1)

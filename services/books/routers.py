@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from schemas import BookCreate, BookOut, BookListOut
 from service import create_book, get_book, list_books, delete_book
-from security import get_current_user
+from security import get_current_user, get_current_user_or_internal_api_key
 
 books_router = APIRouter(prefix="/books", tags=["books"])
 
@@ -16,7 +16,7 @@ def create_book_endpoint(payload: BookCreate, db: Session = Depends(get_db), cur
 
 
 @books_router.get("/{book_id}", response_model=BookOut)
-def get_book_endpoint(book_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> BookOut:
+def get_book_endpoint(book_id: int, db: Session = Depends(get_db), auth=Depends(get_current_user_or_internal_api_key)) -> BookOut:
     book = get_book(db, book_id)
     if not book:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
