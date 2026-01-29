@@ -7,14 +7,24 @@ schemes:
   - https
 produces:
   - application/json
+securityDefinitions:
+  api_key:
+    type: "apiKey"
+    name: "x-api-key"
+    in: "header"
+security:
+  - api_key: []
 paths:
-  # Users Service
+  # Users Service - Auth
   /auth/signup:
     post:
       summary: Signup a new user
       operationId: signup
+      security: []
       x-google-backend:
-        address: https://users-service-REPLACE_ME.us-central1.run.app
+        address: https://users-service-933812900131.us-central1.run.app/auth/signup
+        path_translation: CONSTANT_ADDRESS
+        disable_auth: true
       responses:
         '201':
           description: User created
@@ -22,8 +32,11 @@ paths:
     post:
       summary: Login to get access token
       operationId: login
+      security: []
       x-google-backend:
-        address: https://users-service-REPLACE_ME.us-central1.run.app
+        address: https://users-service-933812900131.us-central1.run.app/auth/token
+        path_translation: CONSTANT_ADDRESS
+        disable_auth: true
       responses:
         '200':
           description: Access token
@@ -32,16 +45,22 @@ paths:
       summary: Get current user
       operationId: me
       x-google-backend:
-        address: https://users-service-REPLACE_ME.us-central1.run.app
+        address: https://users-service-933812900131.us-central1.run.app/auth/me
+        path_translation: CONSTANT_ADDRESS
+        disable_auth: true
       responses:
         '200':
           description: Current user
-  /users/:
+  
+  # Users Service - Users
+  /users:
     get:
       summary: List users
       operationId: listUsers
       x-google-backend:
-        address: https://users-service-REPLACE_ME.us-central1.run.app
+        address: https://users-service-933812900131.us-central1.run.app/users/
+        path_translation: CONSTANT_ADDRESS
+        disable_auth: true
       responses:
         '200':
           description: List of users
@@ -49,7 +68,9 @@ paths:
       summary: Create user
       operationId: createUser
       x-google-backend:
-        address: https://users-service-REPLACE_ME.us-central1.run.app
+        address: https://users-service-933812900131.us-central1.run.app/users/
+        path_translation: CONSTANT_ADDRESS
+        disable_auth: true
       responses:
         '201':
           description: User created
@@ -63,7 +84,9 @@ paths:
           required: true
           type: integer
       x-google-backend:
-        address: https://users-service-REPLACE_ME.us-central1.run.app
+        address: https://users-service-933812900131.us-central1.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+        disable_auth: true
       responses:
         '200':
           description: User details
@@ -77,18 +100,22 @@ paths:
           required: true
           type: integer
       x-google-backend:
-        address: https://users-service-REPLACE_ME.us-central1.run.app
+        address: https://users-service-933812900131.us-central1.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+        disable_auth: true
       responses:
         '200':
           description: History
 
   # Books Service
-  /books/:
+  /books:
     get:
       summary: List books
       operationId: listBooks
       x-google-backend:
-        address: https://books-service-REPLACE_ME.us-central1.run.app
+        address: https://books-service-933812900131.us-central1.run.app/books/
+        path_translation: CONSTANT_ADDRESS
+        disable_auth: true
       responses:
         '200':
           description: List of books
@@ -96,7 +123,9 @@ paths:
       summary: Create book
       operationId: createBook
       x-google-backend:
-        address: https://books-service-REPLACE_ME.us-central1.run.app
+        address: https://books-service-933812900131.us-central1.run.app/books/
+        path_translation: CONSTANT_ADDRESS
+        disable_auth: true
       responses:
         '201':
           description: Book created
@@ -110,7 +139,9 @@ paths:
           required: true
           type: integer
       x-google-backend:
-        address: https://books-service-REPLACE_ME.us-central1.run.app
+        address: https://books-service-933812900131.us-central1.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+        disable_auth: true
       responses:
         '200':
           description: Book details
@@ -123,7 +154,9 @@ paths:
           required: true
           type: integer
       x-google-backend:
-        address: https://books-service-REPLACE_ME.us-central1.run.app
+        address: https://books-service-933812900131.us-central1.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+        disable_auth: true
       responses:
         '204':
           description: Book deleted
@@ -139,7 +172,9 @@ paths:
           required: true
           type: integer
       x-google-backend:
-        address: https://borrow-service-REPLACE_ME.us-central1.run.app
+        address: https://borrow-service-933812900131.us-central1.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+        disable_auth: true
       responses:
         '202':
           description: Borrowed
@@ -153,7 +188,9 @@ paths:
           required: true
           type: integer
       x-google-backend:
-        address: https://borrow-service-REPLACE_ME.us-central1.run.app
+        address: https://borrow-service-933812900131.us-central1.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+        disable_auth: true
       responses:
         '202':
           description: Returned
