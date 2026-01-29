@@ -1,0 +1,391 @@
+{
+    "info": {
+        "_postman_id": "5dbd66b6-0a80-4a39-a469-87f663c0b90b",
+        "name": "Borrowed Book System API (GCP Microservices)",
+        "description": "Postman collection for testing Users, Books, and Borrow microservices on GCP Cloud Run.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "users_url",
+            "value": "https://users-service-933812900131.us-central1.run.app",
+            "type": "string"
+        },
+        {
+            "key": "books_url",
+            "value": "https://books-service-933812900131.us-central1.run.app",
+            "type": "string"
+        },
+        {
+            "key": "borrow_url",
+            "value": "https://borrow-service-933812900131.us-central1.run.app",
+            "type": "string"
+        },
+        {
+            "key": "access_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "test_email",
+            "value": "demo_user@example.com",
+            "type": "string"
+        },
+        {
+            "key": "test_password",
+            "value": "secret123",
+            "type": "string"
+        },
+        {
+            "key": "user_id",
+            "value": "1",
+            "type": "string"
+        },
+        {
+            "key": "book_id",
+            "value": "1",
+            "type": "string"
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{access_token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "item": [
+        {
+            "name": "01_Auth",
+            "item": [
+                {
+                    "name": "Signup (Create User)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.id) {",
+                                    "    pm.collectionVariables.set(\"user_id\", jsonData.id);",
+                                    "    console.log(\"User created with ID: \" + jsonData.id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Demo User\",\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{users_url}}/auth/signup",
+                            "host": [
+                                "{{users_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "signup"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Login (Get Token)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.access_token) {",
+                                    "    pm.collectionVariables.set(\"access_token\", jsonData.access_token);",
+                                    "    console.log(\"Access Token set successfully.\");",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                {
+                                    "key": "username",
+                                    "value": "{{test_email}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "password",
+                                    "value": "{{test_password}}",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{users_url}}/auth/token",
+                            "host": [
+                                "{{users_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "token"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Me",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{users_url}}/auth/me",
+                            "host": [
+                                "{{users_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "me"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "02_Users",
+            "item": [
+                {
+                    "name": "List Users",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{users_url}}/users/",
+                            "host": [
+                                "{{users_url}}"
+                            ],
+                            "path": [
+                                "users",
+                                ""
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get User",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{users_url}}/users/{{user_id}}",
+                            "host": [
+                                "{{users_url}}"
+                            ],
+                            "path": [
+                                "users",
+                                "{{user_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "User Borrow History",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{users_url}}/users/{{user_id}}/borrow-history",
+                            "host": [
+                                "{{users_url}}"
+                            ],
+                            "path": [
+                                "users",
+                                "{{user_id}}",
+                                "borrow-history"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "03_Books",
+            "item": [
+                {
+                    "name": "Create Book",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.id) {",
+                                    "    pm.collectionVariables.set(\"book_id\", jsonData.id);",
+                                    "    console.log(\"Book created with ID: \" + jsonData.id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"title\": \"The Great Gatsby\",\n    \"author\": \"F. Scott Fitzgerald\",\n    \"published_year\": 1925,\n    \"available\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{books_url}}/books/",
+                            "host": [
+                                "{{books_url}}"
+                            ],
+                            "path": [
+                                "books",
+                                ""
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List Books",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{books_url}}/books/",
+                            "host": [
+                                "{{books_url}}"
+                            ],
+                            "path": [
+                                "books",
+                                ""
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Book",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{books_url}}/books/{{book_id}}",
+                            "host": [
+                                "{{books_url}}"
+                            ],
+                            "path": [
+                                "books",
+                                "{{book_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Book",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{books_url}}/books/{{book_id}}",
+                            "host": [
+                                "{{books_url}}"
+                            ],
+                            "path": [
+                                "books",
+                                "{{book_id}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "04_Borrow",
+            "item": [
+                {
+                    "name": "Borrow Book",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"user_id\": {{user_id}}\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{borrow_url}}/borrow/{{book_id}}/borrow",
+                            "host": [
+                                "{{borrow_url}}"
+                            ],
+                            "path": [
+                                "borrow",
+                                "{{book_id}}",
+                                "borrow"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Return Book",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"user_id\": {{user_id}}\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{borrow_url}}/borrow/{{book_id}}/return",
+                            "host": [
+                                "{{borrow_url}}"
+                            ],
+                            "path": [
+                                "borrow",
+                                "{{book_id}}",
+                                "return"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
