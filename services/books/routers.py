@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from database import get_db
-from schemas import BookCreate, BookOut, BookListOut
-from service import create_book, get_book, list_books, delete_book
+from schemas import BookCreate, BookOut, BookListOut, AvailabilityUpdate
+from service import create_book, get_book, list_books, delete_book, update_book_availability
 from security import get_current_user, get_current_user_or_internal_api_key
 
 books_router = APIRouter(prefix="/books", tags=["books"])
@@ -34,3 +34,13 @@ def list_books_endpoint(page: int = 1, page_size: int = 20, db: Session = Depend
 def delete_book_endpoint(book_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> None:
     delete_book(db, book_id)
     return None
+
+
+@books_router.patch("/{book_id}/availability", response_model=BookOut)
+def update_book_availability_endpoint(
+    book_id: int, 
+    payload: AvailabilityUpdate, 
+    db: Session = Depends(get_db), 
+    auth=Depends(get_current_user_or_internal_api_key)
+) -> BookOut:
+    return update_book_availability(db, book_id, payload.is_available)

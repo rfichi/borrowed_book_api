@@ -22,6 +22,10 @@ class BookCreate(BookBase):
     pass
 
 
+class AvailabilityUpdate(BaseModel):
+    is_available: bool
+
+
 class BookOut(BookBase):
     id: int
     is_available: bool

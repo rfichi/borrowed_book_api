@@ -58,3 +58,22 @@ def delete_book(db: Session, book_id: int) -> None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
     db.delete(book)
     db.commit()
+
+
+def update_book_availability(db: Session, book_id: int, is_available: bool) -> Book:
+    """
+    Update the availability status of a book.
+    :param db: Database connection used to interact with database objects.
+    :param book_id: ID of the book to update.
+    :param is_available: The new availability status.
+    :return: The updated Book object.
+    :raises: HTTPException if the book is not found.
+    """
+    book = get_book(db, book_id)
+    if not book:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+    book.is_available = is_available
+    db.add(book)
+    db.commit()
+    db.refresh(book)
+    return book
