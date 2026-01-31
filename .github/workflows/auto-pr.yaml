@@ -1,0 +1,27 @@
+name: Auto Create Pull Request
+
+on:
+  push:
+    branches:
+      - 'feature/*'
+      - 'fix/*'
+      - 'hotfix/*'
+      - 'chore/*'
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Create Pull Request
+        uses: diillson/auto-pull-request@v1.0.1
+        with:
+          destination_branch: "main"
+          pr_title: "PR: ${{ github.ref_name }}"
+          pr_body: "Automated PR created for branch ${{ github.ref_name }}. Please update the description with details from the PR template."
+          pr_label: "automated-pr"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
