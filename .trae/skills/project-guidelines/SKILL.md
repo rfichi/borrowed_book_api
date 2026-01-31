@@ -36,3 +36,8 @@ description: "Defines coding standards, naming conventions, and design patterns.
 ## 5. Async vs Sync
 - The project currently uses **Synchronous** SQLAlchemy (standard `def`).
 - Do not mix `async def` with blocking DB calls unless using an async driver.
+
+## 6. File Formatting & Source Control
+- **End of File:** All text files (code, markdown, config) MUST end with a single newline character.
+  - **Reason:** Prevents `pre-commit` hook failures (`end-of-file-fixer`) and ensures compatibility with POSIX tools.
+- **Trailing Whitespace:** Remove all trailing whitespace from lines.
