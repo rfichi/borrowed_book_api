@@ -27,3 +27,20 @@ description: "Enforces rules for CLI commands, planning phases, and OS-specific 
 ## 4. General Safety
 - **Verification:** Always verify a file exists before trying to read or edit it.
 - **Destructive Actions:** Double-check before using `rm` or `DeleteFile`.
+
+## 5. Explicit Consent for Git Operations
+**Rule:** NEVER proactively generate or execute `git commit` or `git push` commands unless the user has explicitly requested them in the current turn.
+- **Trigger:** Only prompt for git operations if the user asks (e.g., "commit this", "save changes", "push to remote").
+- **Behavior:**
+    - If code changes are made: Verify the changes locally (tests, linting).
+    - Report success: "Changes applied and verified."
+    - Optional Suggestion: "Would you like me to commit these changes?" (Text only, no tool call).
+- **Reasoning:** Prevents cluttering the commit history and allows the user to batch changes or review them before committing.
+
+## 6. Atomic Git Operations
+**Rule:** NEVER chain `git commit` and `git push` in the same command execution (e.g., `git commit -m "..."; git push`).
+- **Process:**
+  1. Execute `git add` and `git commit` first.
+  2. Verify the commit succeeded (check for exit code 0 and no pre-commit hook failures).
+  3. ONLY if the commit was successful, execute `git push` in a subsequent step or tool call.
+- **Reasoning:** Pre-commit hooks often fail and modify files. Chaining push causes confusion or pushes partial/incorrect states.
