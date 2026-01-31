@@ -27,3 +27,12 @@ description: "Enforces rules for CLI commands, planning phases, and OS-specific 
 ## 4. General Safety
 - **Verification:** Always verify a file exists before trying to read or edit it.
 - **Destructive Actions:** Double-check before using `rm` or `DeleteFile`.
+
+## 5. Explicit Consent for Git Operations
+**Rule:** NEVER proactively generate or execute `git commit` or `git push` commands unless the user has explicitly requested them in the current turn.
+- **Trigger:** Only prompt for git operations if the user asks (e.g., "commit this", "save changes", "push to remote").
+- **Behavior:**
+    - If code changes are made: Verify the changes locally (tests, linting).
+    - Report success: "Changes applied and verified."
+    - Optional Suggestion: "Would you like me to commit these changes?" (Text only, no tool call).
+- **Reasoning:** Prevents cluttering the commit history and allows the user to batch changes or review them before committing.

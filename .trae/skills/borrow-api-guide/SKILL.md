@@ -33,6 +33,4 @@ A scalable microservices-based application for managing book borrowing, built wi
 - `docs/`: Documentation and design specs.
 
 ## Development Guidelines
-- **Validation**: MUST use Pydantic models for all requests/responses.
-- **Documentation**: All functions MUST have docstrings and type hinting.
-- **Conventions**: Follow existing patterns in `services/books` for consistency.
+- **Coding Standards**: For naming conventions, design patterns, and code style, invoke the `project-guidelines` skill.
