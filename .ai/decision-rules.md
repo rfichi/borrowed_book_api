@@ -30,7 +30,7 @@ This document defines the explicit decision-making frameworks and criteria for t
 
 ### 4. Git Branching Strategy
 - **Rule:** Use the designated feature branch.
-- **Current Branch:** `feature/deliver_borrow_api_on_gcp`
+- **Current Branch:** `feature/separate_concerns_borrow_service`
 - **Criterion:**
   - Do not commit to `main` directly.
   - **Creating a New Branch Workflow:**

@@ -4,7 +4,7 @@
 from datetime import datetime
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from models import Book, BorrowRecord, User
+from models import BorrowRecord
 import httpx
 import logging
 from config import get_settings
@@ -53,14 +53,23 @@ def validate_book_via_api(book_id: int):
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Books service unavailable")
 
 
-def get_book(db: Session, book_id: int) -> Book | None:
+def update_book_availability_via_api(book_id: int, is_available: bool):
     """
-    Retrieve a book by its ID.
-    :param db: Database connection used to interact with database objects.
-    :param book_id: ID of the book to retrieve.
-    :return: The Book object if found, else None.
+    Update the availability status of a book via the Books Service API.
     """
-    return db.query(Book).filter(Book.id == book_id).first()
+    try:
+        headers = {"x-internal-api-key": settings.INTERNAL_API_KEY}
+        payload = {"is_available": is_available}
+        response = httpx.patch(f"{settings.BOOKS_SERVICE_URL}/books/{book_id}/availability", headers=headers, json=payload)
+        logger.info(f"Update book availability response status code: {response.status_code}")
+        if response.status_code == 404:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+        if response.status_code != 200:
+            logger.error(f"Failed to update book {book_id} availability: {response.text}")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Book update failed: {response.status_code}")
+        return response.json()
+    except httpx.RequestError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Books service unavailable")
 
 
 def borrow_book(db: Session, book_id: int, user_id: int) -> BorrowRecord:
@@ -76,27 +85,12 @@ def borrow_book(db: Session, book_id: int, user_id: int) -> BorrowRecord:
     validate_user_via_api(user_id)
     validate_book_via_api(book_id)
 
-    # 2. Proceed with Local Logic (Hybrid approach for POC Phase 1)
-    # We still need the local objects to create the foreign key relationships 
-    # and perform the atomic DB update until Pub/Sub is ready.
-    book = get_book(db, book_id)
-    if not book:
-        # This might happen if API says yes but local DB is out of sync? 
-        # For shared DB, they should match.
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found locally")
-    
-    # We bypass local user check since we checked via API, 
-    # but for FK constraint we assume user exists in shared DB.
-    # If strictly decoupled, we wouldn't check User table here.
-    
-    if not book.is_available:
-         # Double check local state for concurrency
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Book is already borrowed")
+    # 2. Update Book Availability via API
+    update_book_availability_via_api(book_id, False)
 
+    # 3. Create Borrow Record locally
     record = BorrowRecord(user_id=user_id, book_id=book_id, borrowed_at=datetime.utcnow(), returned_at=None)
-    book.is_available = False
     db.add(record)
-    db.add(book)
     db.commit()
     db.refresh(record)
     return record
@@ -111,12 +105,12 @@ def return_book(db: Session, book_id: int, user_id: int) -> BorrowRecord:
     :return: The updated BorrowRecord object.
     :raises: HTTPException if book/user not found or no active borrow record exists.
     """
-    book = get_book(db, book_id)
-    if not book:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    # 1. Validate via External APIs
+    validate_user_via_api(user_id)
+    # We don't necessarily need to validate book existence if we are returning it,
+    # but we should check if an active record exists.
+    
+    # 2. Find Active Borrow Record
     record = (
         db.query(BorrowRecord)
         .filter(BorrowRecord.book_id == book_id, BorrowRecord.user_id == user_id, BorrowRecord.returned_at.is_(None))
@@ -125,10 +119,13 @@ def return_book(db: Session, book_id: int, user_id: int) -> BorrowRecord:
     )
     if not record:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Active borrow record not found")
+    
+    # 3. Update Book Availability via API
+    update_book_availability_via_api(book_id, True)
+
+    # 4. Update local Borrow Record
     record.returned_at = datetime.utcnow()
-    book.is_available = True
     db.add(record)
-    db.add(book)
     db.commit()
     db.refresh(record)
     return record
