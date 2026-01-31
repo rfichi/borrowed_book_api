@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-01-30
+
+### Status: Service Decoupling
+
+### 🚀 Major Changes
+
+*   **Service Decoupling**: Refactored `borrow-service` to remove direct database dependencies on `books` and `users` tables.
+*   **Books Service**: Added `PATCH /books/{id}/availability` endpoint to allow remote availability updates.
+*   **Borrow Service**: Implemented HTTP client to communicate with `books-service` for status updates, replacing direct DB writes.
+
 ## [0.2.0] - 2026-01-29
 
 ### Status: Live on GCP
