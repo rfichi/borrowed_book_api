@@ -27,6 +27,9 @@ description: "Manages git branching, commits, and PRs according to project stand
 **Trigger:** Before committing changes.
 
 **Requirements:**
+- **Update Changelog (MANDATORY):** The Agent MUST update `CHANGELOG.md` before committing any `feat`, `fix`, or significant `chore`.
+  - Use the format defined in [Section 5: Changelog Format](#5-changelog-format).
+  - This is a strict rule: No changelog update = No commit.
 - **Automation:** The project uses `pre-commit` hooks. These will run automatically on `git commit`.
 - **Manual Run:** To run checks manually, use `pre-commit run --all-files`.
 - **Tests:** Ideally run `pytest` for relevant modules before committing.
@@ -61,6 +64,7 @@ description: "Manages git branching, commits, and PRs according to project stand
    - **Title:** Use the same Conventional Commit format (e.g., "feat: Add user login endpoint").
    - **Target:** `main` branch.
 
+<a id="5-changelog-format"></a>
 ## 5. Changelog Format
 **Structure:**
 ```markdown
