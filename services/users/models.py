@@ -8,7 +8,7 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
-from services.users.database import Base
+from database import Base
 
 
 class User(Base):

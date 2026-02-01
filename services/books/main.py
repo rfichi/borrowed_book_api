@@ -4,11 +4,11 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import HTMLResponse
 import secrets
-from services.books.database import engine, Base, get_db
-from services.books.routers import books_router
-from services.books.config import get_settings
+from database import engine, Base, get_db
+from routers import books_router
+from config import get_settings
 from sqlalchemy.orm import Session
-from services.books.models import AuthAccount
+from models import AuthAccount
 
 # from services.users.service import create_user_with_password # REMOVED: Cross-service import not allowed
 # Actually, since services are isolated, we should not import from other services.
@@ -17,7 +17,7 @@ from services.books.models import AuthAccount
 # For this POC, I will duplicate `create_user_with_password` helper in `main.py` or just use a simpler check.
 # Or better, I will implement a minimal `create_docs_user` in `main.py`.
 
-from .security import create_access_token
+from security import create_access_token
 
 # Wait, `create_user_with_password` is used for `docs` endpoint to create a dummy user.
 # I will implement a local version of it.
@@ -82,8 +82,8 @@ def custom_openapi():
 app.openapi = custom_openapi
 
 # Helper to create docs user if needed
-from .models import User, AuthAccount
-from .security import get_password_hash
+from models import User, AuthAccount
+from security import get_password_hash
 
 
 def ensure_docs_user(db: Session, email: str, password: str):
