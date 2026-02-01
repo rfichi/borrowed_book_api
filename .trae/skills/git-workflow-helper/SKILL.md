@@ -60,3 +60,15 @@ description: "Manages git branching, commits, and PRs according to project stand
    - **Template:** The project uses a PR template. Fill out the sections for Summary, Testing, and Checklist.
    - **Title:** Use the same Conventional Commit format (e.g., "feat: Add user login endpoint").
    - **Target:** `main` branch.
+
+## 5. Changelog Format
+**Structure:**
+```markdown
+- [{version}] - {date}
+- Status: {status}
+- Changes:
+  - {change_description}
+- Fixes:
+  - {fix_description}
+- Breaking Changes
+```
