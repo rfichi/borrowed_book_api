@@ -6,7 +6,7 @@ description: "Manages git branching, commits, and PRs according to project stand
 # Git Workflow Helper
 
 ## 1. Branch Creation Strategy
-**Trigger:** When starting a new task (feature, fix, hotfix).
+**Trigger:** When the user requests to create a new branch.
 
 **Steps:**
 1. **Check Status:** Run `git status`.
@@ -36,6 +36,7 @@ description: "Manages git branching, commits, and PRs according to project stand
 - **Troubleshooting:** If `git commit` fails, check the output for pre-commit hook errors. Fix the reported issues (e.g., formatting, linting) and try committing again.
 
 ## 3. Commit Messages (Conventional Commits)
+**Trigger:** When the user requests to commit their changes.
 **Standard:** Use [Conventional Commits](https://www.conventionalcommits.org/).
 
 **Format:** `<type>(<scope>): <description>`
@@ -55,7 +56,7 @@ description: "Manages git branching, commits, and PRs according to project stand
 - `docs(readme): update installation instructions`
 
 ## 4. Pushing & Pull Requests
-**Trigger:** When the task is complete.
+**Trigger:** When the user requests to push their changes to the remote repository.
 
 **Steps:**
 1. **Push:** `git push -u origin <current_branch_name>`

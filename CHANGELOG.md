@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.1] - 2026-02-01
+
+- Status: Workflow Improvements
+- Changes:
+  - **Git Workflow**: Updated triggers for branching, committing, and pushing to be explicit user requests rather than task-status dependent.
+  - **Documentation**: Enforced strict changelog updates in `SKILL.md`.
+- Fixes:
+  - None
+- Breaking Changes
+
 ## [0.3.0] - 2026-01-30
 
 - Status: Service Decoupling
