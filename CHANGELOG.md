@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
     - Automates pushing images to Artifact Registry.
     - Automates deployment to Cloud Run upon push to `main` branch.
   - **Documentation**: Added `docs/deployment.md` detailing the setup and verification process for the Cloud Build trigger.
+  - **Fixes**: Updated `cloudbuild.yaml` to explicitly use `ai-assistant-cloud-run-sa` for Cloud Run deployments to resolve `iam.serviceaccounts.actAs` permission errors.
 - Fixes:
   - None
 - Breaking Changes
