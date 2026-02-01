@@ -1,13 +1,15 @@
+# flake8: noqa
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import HTMLResponse
 import secrets
-from database import engine, Base, get_db
-from routers import books_router
-from config import get_settings
+from services.books.database import engine, Base, get_db
+from services.books.routers import books_router
+from services.books.config import get_settings
 from sqlalchemy.orm import Session
-from models import AuthAccount
+from services.books.models import AuthAccount
+
 # from services.users.service import create_user_with_password # REMOVED: Cross-service import not allowed
 # Actually, since services are isolated, we should not import from other services.
 # But for DOCS auth, we need to create a user.
@@ -15,7 +17,8 @@ from models import AuthAccount
 # For this POC, I will duplicate `create_user_with_password` helper in `main.py` or just use a simpler check.
 # Or better, I will implement a minimal `create_docs_user` in `main.py`.
 
-from security import create_access_token
+from .security import create_access_token
+
 # Wait, `create_user_with_password` is used for `docs` endpoint to create a dummy user.
 # I will implement a local version of it.
 
@@ -35,9 +38,15 @@ Base.metadata.create_all(bind=engine)
 app.include_router(books_router)
 
 
-def docs_auth(credentials: HTTPBasicCredentials = Depends(security_basic)) -> HTTPBasicCredentials:
-    correct_username = secrets.compare_digest(credentials.username, settings.DOCS_USERNAME)
-    correct_password = secrets.compare_digest(credentials.password, settings.DOCS_PASSWORD)
+def docs_auth(
+    credentials: HTTPBasicCredentials = Depends(security_basic),
+) -> HTTPBasicCredentials:
+    correct_username = secrets.compare_digest(
+        credentials.username, settings.DOCS_USERNAME
+    )
+    correct_password = secrets.compare_digest(
+        credentials.password, settings.DOCS_PASSWORD
+    )
     if not (correct_username and correct_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -56,7 +65,10 @@ def custom_openapi():
         description="Borrowed Book System - Books Service",
         routes=app.routes,
     )
-    if "components" in openapi_schema and "securitySchemes" in openapi_schema["components"]:
+    if (
+        "components" in openapi_schema
+        and "securitySchemes" in openapi_schema["components"]
+    ):
         del openapi_schema["components"]["securitySchemes"]
     for path in openapi_schema.get("paths", {}):
         for method in list(openapi_schema["paths"][path].keys()):
@@ -70,8 +82,9 @@ def custom_openapi():
 app.openapi = custom_openapi
 
 # Helper to create docs user if needed
-from models import User, AuthAccount
-from security import get_password_hash
+from .models import User, AuthAccount
+from .security import get_password_hash
+
 
 def ensure_docs_user(db: Session, email: str, password: str):
     account = db.query(AuthAccount).filter(AuthAccount.email == email).first()
@@ -80,13 +93,18 @@ def ensure_docs_user(db: Session, email: str, password: str):
         db.add(user)
         db.commit()
         db.refresh(user)
-        account = AuthAccount(user_id=user.id, email=email, password_hash=get_password_hash(password))
+        account = AuthAccount(
+            user_id=user.id, email=email, password_hash=get_password_hash(password)
+        )
         db.add(account)
         db.commit()
 
 
 @app.get("/docs", include_in_schema=False)
-def docs(credentials: HTTPBasicCredentials = Depends(docs_auth), db: Session = Depends(get_db)):
+def docs(
+    credentials: HTTPBasicCredentials = Depends(docs_auth),
+    db: Session = Depends(get_db),
+):
     email = "docs@example.com"
     ensure_docs_user(db, email, settings.DOCS_PASSWORD)
     token = create_access_token({"sub": email})

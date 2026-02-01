@@ -1,16 +1,17 @@
+# flake8: noqa
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import HTMLResponse
 import secrets
-from database import engine, Base, get_db
-from routers import borrow_router
-from config import get_settings
+from services.borrow.database import engine, Base, get_db
+from services.borrow.routers import borrow_router
+from services.borrow.config import get_settings
 from sqlalchemy.orm import Session
-from models import AuthAccount
-from security import create_access_token
-from models import User, AuthAccount
-from security import get_password_hash
+from services.borrow.models import AuthAccount
+from services.borrow.security import create_access_token
+from services.borrow.models import User, AuthAccount
+from services.borrow.security import get_password_hash
 
 settings = get_settings()
 security_basic = HTTPBasic()
@@ -28,9 +29,15 @@ Base.metadata.create_all(bind=engine)
 app.include_router(borrow_router)
 
 
-def docs_auth(credentials: HTTPBasicCredentials = Depends(security_basic)) -> HTTPBasicCredentials:
-    correct_username = secrets.compare_digest(credentials.username, settings.DOCS_USERNAME)
-    correct_password = secrets.compare_digest(credentials.password, settings.DOCS_PASSWORD)
+def docs_auth(
+    credentials: HTTPBasicCredentials = Depends(security_basic),
+) -> HTTPBasicCredentials:
+    correct_username = secrets.compare_digest(
+        credentials.username, settings.DOCS_USERNAME
+    )
+    correct_password = secrets.compare_digest(
+        credentials.password, settings.DOCS_PASSWORD
+    )
     if not (correct_username and correct_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -49,7 +56,10 @@ def custom_openapi():
         description="Borrowed Book System - Borrow Service",
         routes=app.routes,
     )
-    if "components" in openapi_schema and "securitySchemes" in openapi_schema["components"]:
+    if (
+        "components" in openapi_schema
+        and "securitySchemes" in openapi_schema["components"]
+    ):
         del openapi_schema["components"]["securitySchemes"]
     for path in openapi_schema.get("paths", {}):
         for method in list(openapi_schema["paths"][path].keys()):
@@ -62,6 +72,7 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
+
 def ensure_docs_user(db: Session, email: str, password: str):
     account = db.query(AuthAccount).filter(AuthAccount.email == email).first()
     if not account:
@@ -69,13 +80,18 @@ def ensure_docs_user(db: Session, email: str, password: str):
         db.add(user)
         db.commit()
         db.refresh(user)
-        account = AuthAccount(user_id=user.id, email=email, password_hash=get_password_hash(password))
+        account = AuthAccount(
+            user_id=user.id, email=email, password_hash=get_password_hash(password)
+        )
         db.add(account)
         db.commit()
 
 
 @app.get("/docs", include_in_schema=False)
-def docs(credentials: HTTPBasicCredentials = Depends(docs_auth), db: Session = Depends(get_db)):
+def docs(
+    credentials: HTTPBasicCredentials = Depends(docs_auth),
+    db: Session = Depends(get_db),
+):
     email = "docs@example.com"
     ensure_docs_user(db, email, settings.DOCS_PASSWORD)
     token = create_access_token({"sub": email})

@@ -3,9 +3,13 @@
 """
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from models import User, BorrowRecord, AuthAccount
-from schemas import UserCreate
-from security import get_password_hash, verify_password, create_access_token
+from services.users.models import User, BorrowRecord, AuthAccount
+from services.users.schemas import UserCreate
+from services.users.security import (
+    get_password_hash,
+    verify_password,
+    create_access_token,
+)
 
 
 def create_user(db: Session, data: UserCreate) -> User:
@@ -17,7 +21,9 @@ def create_user(db: Session, data: UserCreate) -> User:
     :raises: HTTPException if email is already registered.
     """
     # Use create_user_with_password to ensure auth account is created
-    return create_user_with_password(db, name=data.name, email=data.email, password=data.password)
+    return create_user_with_password(
+        db, name=data.name, email=data.email, password=data.password
+    )
 
 
 def get_user(db: Session, user_id: int) -> User | None:
@@ -72,7 +78,9 @@ def get_user_by_email(db: Session, email: str) -> User | None:
     return db.query(User).filter(User.id == account.user_id).first()
 
 
-def create_user_with_password(db: Session, name: str, email: str, password: str) -> User:
+def create_user_with_password(
+    db: Session, name: str, email: str, password: str
+) -> User:
     """
     Create a new user with a password and associated auth account.
     :param db: Database connection used to interact with database objects.
@@ -85,12 +93,16 @@ def create_user_with_password(db: Session, name: str, email: str, password: str)
     existing_account = db.query(AuthAccount).filter(AuthAccount.email == email).first()
     existing_user = db.query(User).filter(User.email == email).first()
     if existing_account or existing_user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
+        )
     user = User(name=name, email=email)
     db.add(user)
     db.commit()
     db.refresh(user)
-    account = AuthAccount(user_id=user.id, email=email, password_hash=get_password_hash(password))
+    account = AuthAccount(
+        user_id=user.id, email=email, password_hash=get_password_hash(password)
+    )
     db.add(account)
     db.commit()
     db.refresh(account)
@@ -108,6 +120,8 @@ def authenticate_user(db: Session, email: str, password: str) -> str:
     """
     account = db.query(AuthAccount).filter(AuthAccount.email == email).first()
     if not account or not verify_password(password, account.password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password"
+        )
     token = create_access_token({"sub": account.email})
     return token

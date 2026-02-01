@@ -3,8 +3,8 @@
 """
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from models import Book
-from schemas import BookCreate
+from services.books.models import Book
+from services.books.schemas import BookCreate
 
 
 def create_book(db: Session, data: BookCreate) -> Book:
@@ -14,7 +14,12 @@ def create_book(db: Session, data: BookCreate) -> Book:
     :param data: Book creation data (title, author, published_year).
     :return: The created Book object.
     """
-    book = Book(title=data.title, author=data.author, published_year=data.published_year, is_available=True)
+    book = Book(
+        title=data.title,
+        author=data.author,
+        published_year=data.published_year,
+        is_available=True,
+    )
     db.add(book)
     db.commit()
     db.refresh(book)
@@ -55,7 +60,9 @@ def delete_book(db: Session, book_id: int) -> None:
     """
     book = get_book(db, book_id)
     if not book:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
+        )
     db.delete(book)
     db.commit()
 
@@ -71,7 +78,9 @@ def update_book_availability(db: Session, book_id: int, is_available: bool) -> B
     """
     book = get_book(db, book_id)
     if not book:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
+        )
     book.is_available = is_available
     db.add(book)
     db.commit()

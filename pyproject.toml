@@ -9,3 +9,7 @@ description = "FastAPI service for managing borrowed books"
 requires-python = ">=3.10"
 authors = [{ name = "Rusel Fichi" }]
 dependencies = []
+
+[tool.pytest.ini_options]
+pythonpath = "."
+testpaths = ["tests"]
