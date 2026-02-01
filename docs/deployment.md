@@ -15,7 +15,7 @@ Before setting up the trigger, ensure you have:
    - Cloud Build API
    - Cloud Run Admin API
    - Artifact Registry API
-3. Created an Artifact Registry repository named `cloud-run-source-deploy` in region `us-central1`.
+3. Created an Artifact Registry repository named `borrow-api-repo` in region `us-central1`.
 
 ## Setup Instructions
 

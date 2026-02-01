@@ -3,54 +3,54 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
-      '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/users-service:${SHORT_SHA}',
-      '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/users-service:latest',
+      '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/users-service:${SHORT_SHA}',
+      '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/users-service:latest',
       'services/users'
     ]
     id: 'build-users'
 
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/users-service:${SHORT_SHA}']
+    args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/users-service:${SHORT_SHA}']
     id: 'push-users-sha'
 
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/users-service:latest']
+    args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/users-service:latest']
     id: 'push-users-latest'
 
   # 2. Build and Push Books Service Image
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
-      '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/books-service:${SHORT_SHA}',
-      '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/books-service:latest',
+      '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/books-service:${SHORT_SHA}',
+      '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/books-service:latest',
       'services/books'
     ]
     id: 'build-books'
 
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/books-service:${SHORT_SHA}']
+    args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/books-service:${SHORT_SHA}']
     id: 'push-books-sha'
 
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/books-service:latest']
+    args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/books-service:latest']
     id: 'push-books-latest'
 
   # 3. Build and Push Borrow Service Image
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
-      '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/borrow-service:${SHORT_SHA}',
-      '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/borrow-service:latest',
+      '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/borrow-service:${SHORT_SHA}',
+      '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/borrow-service:latest',
       'services/borrow'
     ]
     id: 'build-borrow'
 
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/borrow-service:${SHORT_SHA}']
+    args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/borrow-service:${SHORT_SHA}']
     id: 'push-borrow-sha'
 
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/borrow-service:latest']
+    args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/borrow-service:latest']
     id: 'push-borrow-latest'
 
   # 4. Deploy Users Service to Cloud Run
@@ -58,7 +58,7 @@ steps:
     entrypoint: gcloud
     args: [
       'run', 'deploy', 'users-service',
-      '--image', 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/users-service:${SHORT_SHA}',
+      '--image', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/users-service:${SHORT_SHA}',
       '--region', 'us-central1',
       '--platform', 'managed',
       '--allow-unauthenticated'
@@ -70,7 +70,7 @@ steps:
     entrypoint: gcloud
     args: [
       'run', 'deploy', 'books-service',
-      '--image', 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/books-service:${SHORT_SHA}',
+      '--image', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/books-service:${SHORT_SHA}',
       '--region', 'us-central1',
       '--platform', 'managed',
       '--allow-unauthenticated'
@@ -82,7 +82,7 @@ steps:
     entrypoint: gcloud
     args: [
       'run', 'deploy', 'borrow-service',
-      '--image', 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/borrow-service:${SHORT_SHA}',
+      '--image', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/borrow-service:${SHORT_SHA}',
       '--region', 'us-central1',
       '--platform', 'managed',
       '--allow-unauthenticated'
@@ -90,12 +90,12 @@ steps:
     id: 'deploy-borrow'
 
 images:
-  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/users-service:${SHORT_SHA}'
-  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/users-service:latest'
-  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/books-service:${SHORT_SHA}'
-  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/books-service:latest'
-  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/borrow-service:${SHORT_SHA}'
-  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/borrow-service:latest'
+  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/users-service:${SHORT_SHA}'
+  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/users-service:latest'
+  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/books-service:${SHORT_SHA}'
+  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/books-service:latest'
+  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/borrow-service:${SHORT_SHA}'
+  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/borrow-service:latest'
 
 options:
   logging: CLOUD_LOGGING_ONLY
