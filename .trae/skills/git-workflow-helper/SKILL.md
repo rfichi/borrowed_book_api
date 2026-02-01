@@ -11,17 +11,17 @@ description: "Manages git branching, commits, and PRs according to project stand
 **Steps:**
 1. **Check Status:** Run `git status`.
 2. **Handle Pending Changes:**
-   - If changes exist: Run `git stash save "Pre-branch switch"`.
+   - If changes exist: Run `git stash -um "stashing changes for {feature_name}"`.
    - If clean: Proceed.
 3. **Sync Main:**
    - `git checkout main`
    - `git pull origin main`
 4. **Create Branch:**
    - Format: `<type>/<name>`
-   - Types: `feature`, `fix`, `hotfix`
+   - Types: `feature`, `fix`, `hotfix`, `chore`, `refactor`, `hotfix`
    - Example: `git checkout -b feature/user-auth-endpoints`
 5. **Restore Changes:**
-   - If changes were stashed: `git stash pop`
+   - If changes were stashed: `git stash apply`
 
 ## 2. Pre-Commit Quality Checks
 **Trigger:** Before committing changes.
@@ -30,6 +30,7 @@ description: "Manages git branching, commits, and PRs according to project stand
 - **Automation:** The project uses `pre-commit` hooks. These will run automatically on `git commit`.
 - **Manual Run:** To run checks manually, use `pre-commit run --all-files`.
 - **Tests:** Ideally run `pytest` for relevant modules before committing.
+- **Troubleshooting:** If `git commit` fails, check the output for pre-commit hook errors. Fix the reported issues (e.g., formatting, linting) and try committing again.
 
 ## 3. Commit Messages (Conventional Commits)
 **Standard:** Use [Conventional Commits](https://www.conventionalcommits.org/).
