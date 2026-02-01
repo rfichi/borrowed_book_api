@@ -1,6 +1,15 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, UniqueConstraint, DateTime, func
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Boolean,
+    ForeignKey,
+    UniqueConstraint,
+    DateTime,
+    func,
+)
 from sqlalchemy.orm import relationship
-from database import Base
+from services.books.database import Base
 
 
 class Book(Base):
@@ -12,7 +21,9 @@ class Book(Base):
     published_year = Column(Integer, nullable=False)
     is_available = Column(Boolean, default=True, nullable=False, index=True)
 
-    borrow_records = relationship("BorrowRecord", back_populates="book", cascade="all, delete-orphan")
+    borrow_records = relationship(
+        "BorrowRecord", back_populates="book", cascade="all, delete-orphan"
+    )
 
 
 class User(Base):
@@ -21,14 +32,21 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False)
     email = Column(String(255), nullable=False, unique=True, index=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
-    borrow_records = relationship("BorrowRecord", back_populates="user", cascade="all, delete-orphan")
+    borrow_records = relationship(
+        "BorrowRecord", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class AuthAccount(Base):
     __tablename__ = "auth_accounts"
-    __table_args__ = (UniqueConstraint("user_id", name="uq_auth_user_id"), UniqueConstraint("email", name="uq_auth_email"))
+    __table_args__ = (
+        UniqueConstraint("user_id", name="uq_auth_user_id"),
+        UniqueConstraint("email", name="uq_auth_email"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)

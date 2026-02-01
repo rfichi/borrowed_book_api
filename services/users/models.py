@@ -1,6 +1,15 @@
-from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, UniqueConstraint
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    DateTime,
+    func,
+    ForeignKey,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
-from database import Base
+from services.users.database import Base
+
 
 class User(Base):
     __tablename__ = "users"
@@ -8,14 +17,21 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False)
     email = Column(String(255), nullable=False, unique=True, index=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
-    borrow_records = relationship("BorrowRecord", back_populates="user", cascade="all, delete-orphan")
+    borrow_records = relationship(
+        "BorrowRecord", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class AuthAccount(Base):
     __tablename__ = "auth_accounts"
-    __table_args__ = (UniqueConstraint("user_id", name="uq_auth_user_id"), UniqueConstraint("email", name="uq_auth_email"))
+    __table_args__ = (
+        UniqueConstraint("user_id", name="uq_auth_user_id"),
+        UniqueConstraint("email", name="uq_auth_email"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
