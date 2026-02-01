@@ -61,7 +61,8 @@ steps:
       '--image', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/users-service:${SHORT_SHA}',
       '--region', 'us-central1',
       '--platform', 'managed',
-      '--allow-unauthenticated'
+      '--allow-unauthenticated',
+      '--service-account', 'ai-assistant-cloud-run-sa@teak-strength-485420-v3.iam.gserviceaccount.com'
     ]
     id: 'deploy-users'
 
@@ -85,7 +86,8 @@ steps:
       '--image', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/borrow-service:${SHORT_SHA}',
       '--region', 'us-central1',
       '--platform', 'managed',
-      '--allow-unauthenticated'
+      '--allow-unauthenticated',
+      '--service-account', 'ai-assistant-cloud-run-sa@teak-strength-485420-v3.iam.gserviceaccount.com'
     ]
     id: 'deploy-borrow'
 

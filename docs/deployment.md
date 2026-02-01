@@ -50,5 +50,15 @@ Before setting up the trigger, ensure you have:
 - **Cloud Run**: You pay for CPU/Memory allocated during request processing.
 
 ## Troubleshooting
+- **Permission Denied (actAs)**:
+  - Error: `Permission 'iam.serviceaccounts.actAs' denied on service account...`
+  - Cause: The build service account does not have permission to act as the runtime service account.
+  - Fix: Grant the `Service Account User` role to the build service account on the runtime service account.
+    ```bash
+    gcloud iam service-accounts add-iam-policy-binding \
+        ai-assistant-cloud-run-sa@teak-strength-485420-v3.iam.gserviceaccount.com \
+        --member="serviceAccount:ai-assistant-cloud-run-sa@teak-strength-485420-v3.iam.gserviceaccount.com" \
+        --role="roles/iam.serviceAccountUser"
+    ```
 - **Build Fails**: Check the build logs in Cloud Build Console. Common issues include Dockerfile errors or missing dependencies.
 - **Deploy Fails**: Check Cloud Run logs. Ensure the Service Account has permission to deploy.
