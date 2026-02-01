@@ -9,7 +9,7 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.orm import relationship
-from services.borrow.database import Base
+from database import Base
 
 
 class Book(Base):

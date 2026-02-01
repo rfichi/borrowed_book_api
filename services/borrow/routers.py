@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
-from services.borrow.database import get_db
-from services.borrow.schemas import BorrowRequest, BorrowRecordOut
-from services.borrow.service import borrow_book, return_book
-from services.borrow.security import get_current_user
+from database import get_db
+from schemas import BorrowRequest, BorrowRecordOut
+from service import borrow_book, return_book
+from security import get_current_user
 
 borrow_router = APIRouter(prefix="/borrow", tags=["borrow"])
 

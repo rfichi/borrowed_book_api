@@ -3,8 +3,8 @@
 """
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from services.books.models import Book
-from services.books.schemas import BookCreate
+from models import Book
+from schemas import BookCreate
 
 
 def create_book(db: Session, data: BookCreate) -> Book:

@@ -4,14 +4,15 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import HTMLResponse
 import secrets
-from services.borrow.database import engine, Base, get_db
-from services.borrow.routers import borrow_router
-from services.borrow.config import get_settings
+from database import engine, Base, get_db
+from routers import borrow_router
+from config import get_settings
+from models import AuthAccount
 from sqlalchemy.orm import Session
-from services.borrow.models import AuthAccount
-from services.borrow.security import create_access_token
-from services.borrow.models import User, AuthAccount
-from services.borrow.security import get_password_hash
+from models import AuthAccount
+from security import create_access_token
+from models import User, AuthAccount
+from security import get_password_hash
 
 settings = get_settings()
 security_basic = HTTPBasic()

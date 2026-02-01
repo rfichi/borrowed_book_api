@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.2] - 2026-02-01
+
+- Status: Test Suite Isolation
+- Changes:
+  - **Test Infrastructure**: Implemented module-scoped fixture pattern (`[service]_modules`) in `conftest.py` for `users`, `books`, and `borrow` services.
+  - **Isolation**: Enforced strict `sys.path` management with post-test cleanup to prevent cross-service module pollution.
+  - **Refactoring**: Updated all unit tests to inject service modules via fixtures instead of relying on global imports.
+- Fixes:
+  - Fixed `pytest tests/` execution failures caused by module name collisions (e.g., `service.py` from different services).
+  - Resolved `ImportError` and `AttributeError` issues in the test suite.
+  - Eliminated the need for dangerous pre-commit hooks or separate test runs.
+- Breaking Changes
+
+## [0.4.1] - 2026-02-01
+
+- Status: Service Isolation Fixes
+- Changes:
+  - **Service Isolation**: Refactored `borrow`, `books`, and `users` services to enforce strict isolation.
+    - Replaced absolute imports (e.g., `services.borrow.*`, `services.books.*`, `services.users.*`) with local imports in all services.
+    - Verified `Dockerfile` for all services to align with the isolated structure.
+    - Updated unit tests (`tests/borrow`, `tests/books`, `tests/users`) to support local service execution and imports.
+- Fixes:
+  - Resolved `ModuleNotFoundError` when running services locally in isolation.
+  - Fixed `ImportError` in unit tests caused by import path mismatches.
+  - Resolved Cloud Run deployment issues caused by container startup failures due to import errors.
+- Breaking Changes
+
 ## [0.4.0] - 2026-02-01
 
 - Status: CI/CD Pipeline Setup

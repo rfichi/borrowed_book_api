@@ -2,16 +2,10 @@ import pytest
 from unittest.mock import MagicMock, patch
 from fastapi import HTTPException
 
-from services.books.security import (
-    get_current_user,
-    get_current_user_or_internal_api_key,
-)
-from services.books.config import get_settings
 
-settings = get_settings()
+def test_get_current_user_success(books_modules, mock_db_session, mock_user):
+    security = books_modules.security
 
-
-def test_get_current_user_success(mock_db_session, mock_user):
     # Mock jwt.decode
     with patch("jose.jwt.decode") as mock_decode:
         mock_decode.return_value = {"sub": "test@example.com"}
@@ -27,51 +21,65 @@ def test_get_current_user_success(mock_db_session, mock_user):
         filter_mock = query_mock.filter.return_value
         filter_mock.first.side_effect = [mock_account, mock_user]
 
-        user = get_current_user(token="valid_token", db=mock_db_session)
+        user = security.get_current_user(token="valid_token", db=mock_db_session)
         assert user == mock_user
 
 
-def test_get_current_user_invalid_token(mock_db_session):
+def test_get_current_user_invalid_token(books_modules, mock_db_session):
+    security = books_modules.security
+
     with patch("jose.jwt.decode", side_effect=Exception("Invalid token")):
         with pytest.raises(HTTPException) as exc:
-            get_current_user(token="invalid_token", db=mock_db_session)
+            security.get_current_user(token="invalid_token", db=mock_db_session)
         assert exc.value.status_code == 401
 
 
-def test_get_current_user_account_not_found(mock_db_session):
+def test_get_current_user_account_not_found(books_modules, mock_db_session):
+    security = books_modules.security
+
     with patch("jose.jwt.decode") as mock_decode:
         mock_decode.return_value = {"sub": "test@example.com"}
 
         mock_db_session.query.return_value.filter.return_value.first.return_value = None
 
         with pytest.raises(HTTPException) as exc:
-            get_current_user(token="valid_token", db=mock_db_session)
+            security.get_current_user(token="valid_token", db=mock_db_session)
         assert exc.value.status_code == 401
 
 
-def test_get_current_user_or_internal_api_key_with_key(mock_db_session):
+def test_get_current_user_or_internal_api_key_with_key(books_modules, mock_db_session):
+    security = books_modules.security
+    config = books_modules.config
+    settings = config.get_settings()
+
     # If API key matches, it returns None
-    result = get_current_user_or_internal_api_key(
+    result = security.get_current_user_or_internal_api_key(
         x_internal_api_key=settings.INTERNAL_API_KEY, token=None, db=mock_db_session
     )
     assert result is None
 
 
-def test_get_current_user_or_internal_api_key_with_token(mock_db_session, mock_user):
+def test_get_current_user_or_internal_api_key_with_token(
+    books_modules, mock_db_session, mock_user
+):
+    security = books_modules.security
+
     # Mock get_current_user to avoid complexity
-    with patch(
-        "services.books.security.get_current_user", return_value=mock_user
-    ) as mock_get_user:
-        result = get_current_user_or_internal_api_key(
+    with patch("security.get_current_user", return_value=mock_user) as mock_get_user:
+        result = security.get_current_user_or_internal_api_key(
             x_internal_api_key=None, token="valid_token", db=mock_db_session
         )
         assert result == mock_user
         mock_get_user.assert_called_once()
 
 
-def test_get_current_user_or_internal_api_key_missing_both(mock_db_session):
+def test_get_current_user_or_internal_api_key_missing_both(
+    books_modules, mock_db_session
+):
+    security = books_modules.security
+
     with pytest.raises(HTTPException) as exc:
-        get_current_user_or_internal_api_key(
+        security.get_current_user_or_internal_api_key(
             x_internal_api_key=None, token=None, db=mock_db_session
         )
     assert exc.value.status_code == 401

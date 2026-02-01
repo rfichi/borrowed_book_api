@@ -1,15 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from services.books.database import get_db
-from services.books.schemas import BookCreate, BookOut, BookListOut, AvailabilityUpdate
-from services.books.service import (
+from database import get_db
+from schemas import BookCreate, BookOut, BookListOut, AvailabilityUpdate
+from service import (
     create_book,
     get_book,
     list_books,
     delete_book,
     update_book_availability,
 )
-from services.books.security import (
+from security import (
     get_current_user,
     get_current_user_or_internal_api_key,
 )

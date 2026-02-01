@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from services.users.database import get_db
-from services.users.schemas import UserCreate, UserOut, UserListOut, BorrowRecordOut
-from services.users.service import (
+from database import get_db
+from schemas import UserCreate, UserOut, UserListOut, BorrowRecordOut
+from service import (
     create_user,
     get_user,
     list_users,
@@ -11,7 +11,7 @@ from services.users.service import (
     create_user_with_password,
     authenticate_user,
 )
-from .security import get_current_user, get_current_user_or_internal_api_key
+from security import get_current_user, get_current_user_or_internal_api_key
 
 users_router = APIRouter(prefix="/users", tags=["users"])
 auth_router = APIRouter(prefix="/auth", tags=["auth"])

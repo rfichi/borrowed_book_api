@@ -11,7 +11,7 @@ async def test_signup_endpoint(client, mock_user):
     }
 
     with patch(
-        "services.users.routers.create_user_with_password", return_value=mock_user
+        "routers.create_user_with_password", return_value=mock_user
     ) as mock_create:
         response = await client.post("/auth/signup", json=payload)
 
@@ -23,7 +23,7 @@ async def test_signup_endpoint(client, mock_user):
 
 @pytest.mark.anyio
 async def test_login_endpoint(client):
-    with patch("services.users.routers.authenticate_user", return_value="access_token"):
+    with patch("routers.authenticate_user", return_value="access_token"):
         response = await client.post(
             "/auth/token", data={"username": "test@example.com", "password": "password"}
         )
@@ -42,7 +42,7 @@ async def test_me_endpoint(client, mock_user):
 
 @pytest.mark.anyio
 async def test_get_user_endpoint_found(client, mock_user):
-    with patch("services.users.routers.get_user", return_value=mock_user):
+    with patch("routers.get_user", return_value=mock_user):
         response = await client.get(f"/users/{mock_user.id}")
 
         assert response.status_code == 200
@@ -51,7 +51,7 @@ async def test_get_user_endpoint_found(client, mock_user):
 
 @pytest.mark.anyio
 async def test_get_user_endpoint_not_found(client):
-    with patch("services.users.routers.get_user", return_value=None):
+    with patch("routers.get_user", return_value=None):
         response = await client.get("/users/999")
 
         assert response.status_code == 404
@@ -59,7 +59,7 @@ async def test_get_user_endpoint_not_found(client):
 
 @pytest.mark.anyio
 async def test_list_users_endpoint(client, mock_user):
-    with patch("services.users.routers.list_users", return_value=(1, [mock_user])):
+    with patch("routers.list_users", return_value=(1, [mock_user])):
         response = await client.get("/users/")
 
         assert response.status_code == 200
@@ -81,9 +81,7 @@ async def test_user_borrow_history_endpoint(client):
     mock_orm_record.borrowed_at.isoformat.return_value = "2024-01-01T00:00:00"
     mock_orm_record.returned_at = None
 
-    with patch(
-        "services.users.routers.get_user_borrow_history", return_value=[mock_orm_record]
-    ):
+    with patch("routers.get_user_borrow_history", return_value=[mock_orm_record]):
         response = await client.get("/users/1/borrow-history")
 
         assert response.status_code == 200

@@ -3,9 +3,9 @@
 """
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from services.users.models import User, BorrowRecord, AuthAccount
-from services.users.schemas import UserCreate
-from services.users.security import (
+from models import User, BorrowRecord, AuthAccount
+from schemas import UserCreate
+from security import (
     get_password_hash,
     verify_password,
     create_access_token,
