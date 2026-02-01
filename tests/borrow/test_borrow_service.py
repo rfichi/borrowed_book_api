@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import patch
 from fastapi import HTTPException
-from services.borrow.models import BorrowRecord
-from services.borrow.service import borrow_book, return_book
+from models import BorrowRecord
+from service import borrow_book, return_book
 
 
 def test_borrow_book_success(mock_db_session):
@@ -10,13 +10,9 @@ def test_borrow_book_success(mock_db_session):
     book_id = 1
 
     # Mock external API validations
-    with patch("services.borrow.service.validate_user_via_api") as mock_validate_user:
-        with patch(
-            "services.borrow.service.validate_book_via_api"
-        ) as mock_validate_book:
-            with patch(
-                "services.borrow.service.update_book_availability_via_api"
-            ) as mock_update_book:
+    with patch("service.validate_user_via_api") as mock_validate_user:
+        with patch("service.validate_book_via_api") as mock_validate_book:
+            with patch("service.update_book_availability_via_api") as mock_update_book:
                 result = borrow_book(mock_db_session, book_id, user_id)
 
                 assert result.user_id == user_id
@@ -33,7 +29,7 @@ def test_borrow_book_success(mock_db_session):
 
 def test_borrow_book_user_not_found(mock_db_session):
     with patch(
-        "services.borrow.service.validate_user_via_api",
+        "service.validate_user_via_api",
         side_effect=HTTPException(status_code=404),
     ):
         with pytest.raises(HTTPException) as exc:
@@ -42,9 +38,9 @@ def test_borrow_book_user_not_found(mock_db_session):
 
 
 def test_borrow_book_book_not_found(mock_db_session):
-    with patch("services.borrow.service.validate_user_via_api"):
+    with patch("service.validate_user_via_api"):
         with patch(
-            "services.borrow.service.validate_book_via_api",
+            "service.validate_book_via_api",
             side_effect=HTTPException(status_code=404),
         ):
             with pytest.raises(HTTPException) as exc:
@@ -61,10 +57,8 @@ def test_return_book_success(mock_db_session):
         mock_record
     )
 
-    with patch("services.borrow.service.validate_user_via_api"):
-        with patch(
-            "services.borrow.service.update_book_availability_via_api"
-        ) as mock_update_book:
+    with patch("service.validate_user_via_api"):
+        with patch("service.update_book_availability_via_api") as mock_update_book:
             result = return_book(mock_db_session, book_id, user_id)
 
             assert result.returned_at is not None
@@ -77,7 +71,7 @@ def test_return_book_no_active_record(mock_db_session):
         None
     )
 
-    with patch("services.borrow.service.validate_user_via_api"):
+    with patch("service.validate_user_via_api"):
         with pytest.raises(HTTPException) as exc:
             return_book(mock_db_session, 1, 1)
         assert exc.value.status_code == 404

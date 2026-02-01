@@ -1,4 +1,6 @@
 from unittest.mock import MagicMock
+import sys
+from pathlib import Path
 
 import pytest
 from httpx import AsyncClient, ASGITransport
@@ -7,12 +9,12 @@ from sqlalchemy.orm import Session
 # Add the service directory to sys.path so imports work
 # Current file: tests/borrow/conftest.py
 # Target: services/borrow
-# sys.path.insert(0, str(Path(__file__).parents[2] / "services" / "borrow"))
+sys.path.insert(0, str(Path(__file__).parents[2] / "services" / "borrow"))
 
 # Import app and dependencies after setting up path
-from services.borrow.main import app
-from services.borrow.database import get_db
-from services.borrow.security import get_current_user
+from main import app  # noqa: E402
+from database import get_db  # noqa: E402
+from security import get_current_user  # noqa: E402
 
 
 @pytest.fixture

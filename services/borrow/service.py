@@ -4,10 +4,10 @@
 from datetime import datetime
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from services.borrow.models import BorrowRecord
+from models import BorrowRecord
 import httpx
 import logging
-from services.borrow.config import get_settings
+from config import get_settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
