@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
 import pytest
-from fastapi.testclient import TestClient
+from httpx import AsyncClient, ASGITransport
 from sqlalchemy.orm import Session
 
 # Add the service directory to sys.path so imports work
@@ -32,7 +32,7 @@ def mock_user():
 
 
 @pytest.fixture
-def client(mock_db_session, mock_user):
+async def client(mock_db_session, mock_user):
     """
     Returns a TestClient with overridden dependencies.
     """
@@ -49,7 +49,9 @@ def client(mock_db_session, mock_user):
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_get_current_user
 
-    with TestClient(app) as c:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as c:
         yield c
 
     app.dependency_overrides.clear()

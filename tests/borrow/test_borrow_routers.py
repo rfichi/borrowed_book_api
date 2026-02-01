@@ -1,7 +1,9 @@
 from unittest.mock import MagicMock, patch
+import pytest
 
 
-def test_borrow_book_endpoint(client):
+@pytest.mark.anyio
+async def test_borrow_book_endpoint(client):
     payload = {"user_id": 1}
     book_id = 1
 
@@ -16,13 +18,14 @@ def test_borrow_book_endpoint(client):
     with patch(
         "services.borrow.routers.borrow_book", return_value=mock_record
     ) as mock_borrow:
-        response = client.post(f"/borrow/{book_id}/borrow", json=payload)
+        response = await client.post(f"/borrow/{book_id}/borrow", json=payload)
 
         assert response.status_code == 202
         mock_borrow.assert_called_once()
 
 
-def test_return_book_endpoint(client):
+@pytest.mark.anyio
+async def test_return_book_endpoint(client):
     payload = {"user_id": 1}
     book_id = 1
 
@@ -36,7 +39,7 @@ def test_return_book_endpoint(client):
     with patch(
         "services.borrow.routers.return_book", return_value=mock_record
     ) as mock_return:
-        response = client.post(f"/borrow/{book_id}/return", json=payload)
+        response = await client.post(f"/borrow/{book_id}/return", json=payload)
 
         assert response.status_code == 202
         mock_return.assert_called_once()

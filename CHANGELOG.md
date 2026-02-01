@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.2] - 2026-02-01
+
+- Status: Refactoring & Testing Standardization
+- Changes:
+  - **Standardization**: Replaced `requests` and `FastAPI TestClient` with `httpx` and `httpx.AsyncClient` across all services (`users`, `books`, `borrow`).
+  - **Testing**: Migrated all unit tests to asynchronous tests using `pytest-anyio` to align with the new async HTTP client pattern.
+  - **Dependencies**: Added `httpx` dependency to the `users` service.
+- Fixes:
+  - None
+- Breaking Changes
+
 ## [0.3.1] - 2026-02-01
 
 - Status: Workflow Improvements
