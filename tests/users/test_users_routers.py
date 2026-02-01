@@ -1,7 +1,9 @@
 from unittest.mock import MagicMock, patch
+import pytest
 
 
-def test_signup_endpoint(client, mock_user):
+@pytest.mark.anyio
+async def test_signup_endpoint(client, mock_user):
     payload = {
         "name": "New User",
         "email": "new@example.com",
@@ -11,7 +13,7 @@ def test_signup_endpoint(client, mock_user):
     with patch(
         "services.users.routers.create_user_with_password", return_value=mock_user
     ) as mock_create:
-        response = client.post("/auth/signup", json=payload)
+        response = await client.post("/auth/signup", json=payload)
 
         assert response.status_code == 201
         data = response.json()
@@ -19,9 +21,10 @@ def test_signup_endpoint(client, mock_user):
         mock_create.assert_called_once()
 
 
-def test_login_endpoint(client):
+@pytest.mark.anyio
+async def test_login_endpoint(client):
     with patch("services.users.routers.authenticate_user", return_value="access_token"):
-        response = client.post(
+        response = await client.post(
             "/auth/token", data={"username": "test@example.com", "password": "password"}
         )
 
@@ -29,31 +32,35 @@ def test_login_endpoint(client):
         assert response.json()["access_token"] == "access_token"
 
 
-def test_me_endpoint(client, mock_user):
-    response = client.get("/auth/me")
+@pytest.mark.anyio
+async def test_me_endpoint(client, mock_user):
+    response = await client.get("/auth/me")
 
     assert response.status_code == 200
     assert response.json()["email"] == mock_user.email
 
 
-def test_get_user_endpoint_found(client, mock_user):
+@pytest.mark.anyio
+async def test_get_user_endpoint_found(client, mock_user):
     with patch("services.users.routers.get_user", return_value=mock_user):
-        response = client.get(f"/users/{mock_user.id}")
+        response = await client.get(f"/users/{mock_user.id}")
 
         assert response.status_code == 200
         assert response.json()["id"] == mock_user.id
 
 
-def test_get_user_endpoint_not_found(client):
+@pytest.mark.anyio
+async def test_get_user_endpoint_not_found(client):
     with patch("services.users.routers.get_user", return_value=None):
-        response = client.get("/users/999")
+        response = await client.get("/users/999")
 
         assert response.status_code == 404
 
 
-def test_list_users_endpoint(client, mock_user):
+@pytest.mark.anyio
+async def test_list_users_endpoint(client, mock_user):
     with patch("services.users.routers.list_users", return_value=(1, [mock_user])):
-        response = client.get("/users/")
+        response = await client.get("/users/")
 
         assert response.status_code == 200
         data = response.json()
@@ -61,7 +68,8 @@ def test_list_users_endpoint(client, mock_user):
         assert len(data["results"]) == 1
 
 
-def test_user_borrow_history_endpoint(client):
+@pytest.mark.anyio
+async def test_user_borrow_history_endpoint(client):
     # We need to mock the object returned by service, which should match the schema
     # But service returns ORM objects. Pydantic handles conversion.
     # So we mock service returning list of objects that have these attributes
@@ -76,7 +84,7 @@ def test_user_borrow_history_endpoint(client):
     with patch(
         "services.users.routers.get_user_borrow_history", return_value=[mock_orm_record]
     ):
-        response = client.get("/users/1/borrow-history")
+        response = await client.get("/users/1/borrow-history")
 
         assert response.status_code == 200
         assert len(response.json()) == 1

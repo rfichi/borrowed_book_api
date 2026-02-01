@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
 import pytest
-from fastapi.testclient import TestClient
+from httpx import AsyncClient, ASGITransport
 from sqlalchemy.orm import Session
 
 from services.books.main import app
@@ -39,7 +39,7 @@ def mock_book():
 
 
 @pytest.fixture
-def client(mock_db_session, mock_user):
+async def client(mock_db_session, mock_user):
     """
     Returns a TestClient with overridden dependencies.
     """
@@ -62,7 +62,9 @@ def client(mock_db_session, mock_user):
         get_current_user_or_internal_api_key
     ] = override_get_current_user_or_api_key
 
-    with TestClient(app) as c:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as c:
         yield c
 
     app.dependency_overrides.clear()
