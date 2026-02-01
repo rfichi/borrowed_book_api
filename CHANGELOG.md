@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2026-02-01
+
+- Status: CI/CD Pipeline Setup
+- Changes:
+  - **CI/CD**: Added `cloudbuild.yaml` configuration for Google Cloud Build.
+    - Automates building Docker images for `users`, `books`, and `borrow` services.
+    - Automates pushing images to Artifact Registry.
+    - Automates deployment to Cloud Run upon push to `main` branch.
+  - **Documentation**: Added `docs/deployment.md` detailing the setup and verification process for the Cloud Build trigger.
+- Fixes:
+  - None
+- Breaking Changes
+
 ## [0.3.2] - 2026-02-01
 
 - Status: Refactoring & Testing Standardization
