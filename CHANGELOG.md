@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.4] - 2026-02-02
+
+- Status: Build Optimization
+- Changes:
+  - **Docker Optimization**: Implemented multi-stage builds for all services (`users`, `books`, `borrow`), significantly reducing image size by separating build dependencies from the runtime environment.
+  - **Security**: Added non-root user (`appuser`) to Docker images for enhanced security.
+  - **Cloud Build**: Optimized `cloudbuild.yaml` to run build and push steps in parallel (`waitFor: ['-']`), reducing total build time.
+  - **Caching**: Enabled Docker layer caching in Cloud Build using `--cache-from` to speed up subsequent builds.
+- Fixes:
+  - Reduced image size and build time.
+- Breaking Changes
+
 ## [0.4.3] - 2026-02-02
 
 - Status: Legacy Cleanup
