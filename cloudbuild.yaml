@@ -106,6 +106,18 @@ steps:
     id: 'deploy-borrow'
     waitFor: ['push-borrow-sha']
 
+  # 6. Run E2E Smoke Tests
+  - name: 'python:3.10-slim'
+    entrypoint: /bin/sh
+    args:
+      - -c
+      - |
+        pip install httpx
+        python demo/verify_gateway.py
+    secretEnv: ['API_KEY']
+    id: 'e2e-tests'
+    waitFor: ['deploy-users', 'deploy-books', 'deploy-borrow']
+
 images:
   - 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/users-service:${SHORT_SHA}'
   - 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/users-service:latest'
@@ -116,3 +128,8 @@ images:
 
 options:
   logging: CLOUD_LOGGING_ONLY
+
+availableSecrets:
+  secretManager:
+  - versionName: projects/${PROJECT_ID}/secrets/borrow-api-key/versions/latest
+    env: 'API_KEY'

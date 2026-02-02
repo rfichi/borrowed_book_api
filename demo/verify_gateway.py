@@ -1,6 +1,7 @@
 import httpx
 import uuid
 import os
+import sys
 
 GATEWAY_URL = "https://borrow-gateway-bwzk395v.uc.gateway.dev"
 API_KEY = os.getenv("API_KEY")
@@ -9,9 +10,8 @@ if not API_KEY:
     print(
         "Warning: API_KEY environment variable not set. Please set it before running."
     )
-    # You might want to exit or provide a default for local testing if appropriate,
-    # but for security, it's better to fail or warn.
-    # We will try to proceed but requests might fail if the gateway enforces it.
+    # Fail fast in CI environment
+    sys.exit(1)
 
 
 def get_headers(token=None):
@@ -46,7 +46,7 @@ def test_gateway():
         user_id = None  # Will try to fetch later
     else:
         print(f"   Signup FAILED: {resp.status_code} {resp.text}")
-        return
+        sys.exit(1)
 
     # 2. Login
     print("2. Login")
@@ -60,7 +60,7 @@ def test_gateway():
         print("   Login SUCCESS")
     else:
         print(f"   Login FAILED: {resp.status_code} {resp.text}")
-        return
+        sys.exit(1)
 
     # 3. List Users
     print("3. List Users")
@@ -85,12 +85,14 @@ def test_gateway():
                 print(f"   Get User SUCCESS: {resp_u.json()['email']}")
             else:
                 print(f"   Get User FAILED: {resp_u.status_code} {resp_u.text}")
+                sys.exit(1)
     else:
         print(f"   List Users FAILED: {resp.status_code} {resp.text}")
+        sys.exit(1)
 
     if not user_id:
         print("   Could not determine user_id, aborting borrow test.")
-        return
+        sys.exit(1)
 
     # 4. Create Book
     print("4. Create Book")
@@ -110,7 +112,7 @@ def test_gateway():
         print(f"   Create Book SUCCESS: ID {book_id}")
     else:
         print(f"   Create Book FAILED: {resp.status_code} {resp.text}")
-        return
+        sys.exit(1)
 
     # 5. List Books
     print("5. List Books")
@@ -119,6 +121,7 @@ def test_gateway():
         print(f"   List Books SUCCESS: {len(resp.json()['results'])} books")
     else:
         print(f"   List Books FAILED: {resp.status_code} {resp.text}")
+        sys.exit(1)
 
     # 5b. Get Book by ID
     print(f"5b. Get Book {book_id}")
@@ -127,6 +130,7 @@ def test_gateway():
         print(f"   Get Book SUCCESS: {resp.json()['title']}")
     else:
         print(f"   Get Book FAILED: {resp.status_code} {resp.text}")
+        sys.exit(1)
 
     # 6. Borrow Book
     print(f"6. Borrow Book {book_id}")
@@ -139,6 +143,7 @@ def test_gateway():
         print("   Borrow Book SUCCESS")
     else:
         print(f"   Borrow Book FAILED: {resp.status_code} {resp.text}")
+        sys.exit(1)
 
     # 7. Return Book
     print(f"7. Return Book {book_id}")
@@ -151,6 +156,7 @@ def test_gateway():
         print("   Return Book SUCCESS")
     else:
         print(f"   Return Book FAILED: {resp.status_code} {resp.text}")
+        sys.exit(1)
 
     # 8. Borrow History
     print(f"8. Borrow History for user {user_id}")
@@ -162,6 +168,7 @@ def test_gateway():
         print(f"   Borrow History SUCCESS: {len(history)} records")
     else:
         print(f"   Borrow History FAILED: {resp.status_code} {resp.text}")
+        sys.exit(1)
 
     # 9. Edge Cases: Non-existent User/Book
     print("9. Testing Edge Cases (Non-existent User/Book)")
@@ -182,6 +189,7 @@ def test_gateway():
         print(
             f"   Borrow with non-existent user: FAILED (Expected 404, got {resp.status_code} {resp.text})"
         )
+        sys.exit(1)
 
     # 9.2 Borrow Non-existent Book
     non_existent_book_id = 999999
@@ -197,6 +205,7 @@ def test_gateway():
         print(
             f"   Borrow non-existent book: FAILED (Expected 404, got {resp.status_code} {resp.text})"
         )
+        sys.exit(1)
 
     # 9.3 Return with Non-existent User
     print(
@@ -207,16 +216,9 @@ def test_gateway():
         json={"user_id": non_existent_user_id},
         headers=get_headers(token),
     )
-    # Depending on implementation, returning might check user existence.
-    # If the borrow record exists for the book but not the user...
-    # wait, the borrow record is tied to a user.
-    # If we pass a random user_id, it should fail because the borrow record
-    # belongs to someone else (if we check matching user)
-    # OR if we check user existence first, it should return 404 User Not Found.
-    # Let's assume strict user validation first.
     if resp.status_code == 404:
         print("   Return with non-existent user: SUCCESS (Got 404)")
-    elif resp.status_code == 403:  # Or maybe forbidden if book borrowed by someone else
+    elif resp.status_code == 403:
         print(
             "   Return with non-existent user: Got 403 (Might be expected if checking ownership first)"
         )
@@ -224,6 +226,7 @@ def test_gateway():
         print(
             f"   Return with non-existent user: FAILED (Expected 404 or 403, got {resp.status_code} {resp.text})"
         )
+        sys.exit(1)
 
     # 9.4 Return Non-existent Book
     print(f"   9.4 Returning non-existent book {non_existent_book_id}")
@@ -238,6 +241,7 @@ def test_gateway():
         print(
             f"   Return non-existent book: FAILED (Expected 404, got {resp.status_code} {resp.text})"
         )
+        sys.exit(1)
 
 
 if __name__ == "__main__":
