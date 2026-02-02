@@ -69,13 +69,15 @@ description: "Manages git branching, commits, and PRs according to project stand
 ## 5. Changelog Format
 **Structure:**
 ```markdown
-- [{version}] - {date}
-- Status: {status}
-- Changes:
-  - {change_description}
-- Fixes:
-  - {fix_description}
-- Breaking Changes
+## [{version}] - {date}
+### Added
+- {additiion_entry_1}
+### Fixed
+- {fix_entry_1}
+### Removed
+- {removed_entry_1}
+### Breaking Changes
+- {breaking_change_1}
 ```
 
 ## 6. Version Synchronization
