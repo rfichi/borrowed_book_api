@@ -1,0 +1,46 @@
+name: CI/CD Tests
+
+on:
+  push:
+    branches:
+      - 'feature/*'
+      - 'fix/*'
+      - 'hotfix/*'
+      - 'chore/*'
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    name: Test ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ["users", "books", "borrow"]
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov httpx
+          if [ -f services/${{ matrix.service }}/requirements.txt ]; then
+            pip install -r services/${{ matrix.service }}/requirements.txt
+          fi
+
+      - name: Run Tests with Coverage
+        env:
+          PYTHONPATH: ${{ github.workspace }}/services/${{ matrix.service }}
+        run: |
+          # Run pytest with coverage for the specific service module
+          # --cov-fail-under=70 will fail the build if coverage is below 70%
+          pytest --cov=services/${{ matrix.service }} --cov-fail-under=70 tests/${{ matrix.service }}
