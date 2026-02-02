@@ -1,12 +1,6 @@
 name: CI/CD Tests
 
 on:
-  push:
-    branches:
-      - 'feature/*'
-      - 'fix/*'
-      - 'hotfix/*'
-      - 'chore/*'
   pull_request:
     branches: ["main"]
 

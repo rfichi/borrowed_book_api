@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2] - 2026-02-02
+
+### Changed
+- Updated CI/CD pipeline to trigger only on pull requests to main, removing push triggers.
+
 ## [0.5.1] - 2026-02-02
 
 ### Changed
@@ -74,7 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.2] - 2026-02-01
 
 ### Added
-- **Standardization**: Replaced `requests` and `FastAPI TestClient` with `httpx` and `httpx.AsyncClient` across all services (`users`, `books`, `borrow`).
+- **Standardization**: Replaced `requests` and `FastAPI TestClient` with `httpx` and `httpx.AsyncClient` across all services (`users`, `books`, and `borrow`).
 - **Testing**: Migrated all unit tests to asynchronous tests using `pytest-anyio` to align with the new async HTTP client pattern.
 - **Dependencies**: Added `httpx` dependency to the `users` service.
 
@@ -98,32 +103,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Microservices Architecture**: Split the original monolithic application into three distinct services: `users`, `books`, and `borrow`.
-- **Cloud Migration**: Fully migrated infrastructure to Google Cloud Platform.
-  - **Compute**: Services deployed to Cloud Run.
-  - **Database**: Migrated from local SQLite to Google Cloud SQL (PostgreSQL).
-- **Security**:
-  - **Authentication**: Implemented JWT authentication for user endpoints.
-  - **Inter-service**: Added `x-internal-api-key` based authentication for secure inter-service communication.
-- **API Gateway**: Integrated Google API Gateway to route traffic to appropriate Cloud Run services.
-- **Borrow Service**:
-  - Refactored `borrow_book` and `return_book` logic to validate users and books via external API calls.
-  - Added robust error handling and logging for inter-service requests.
-  - Enforced separation of concerns: Borrow service no longer directly queries User/Book tables for validation.
-- **Books Service**:
-  - Added endpoints for managing book availability status.
-  - Secured sensitive endpoints.
-- **Users Service**:
-  - Enhanced user retrieval with internal API key support.
-
-### Fixed
-- Fixed `401 Unauthorized` errors during inter-service communication by implementing Internal API Key headers.
-- Resolved separation of concerns violations where services were accessing each other's database tables directly.
-
-
-## [0.1.0] - Initial Release
-
-### Added
-  - Initial proof of concept.
-  - Monolithic FastAPI application.
-  - Local SQLite database.
-  - Basic CRUD operations for Users, Books, and Borrow records.
