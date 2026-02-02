@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.3] - 2026-02-02
+
+- Status: Legacy Cleanup
+- Changes:
+  - **Refactoring**: Removed legacy root-level `models/`, `schemas/`, and `routers/` directories to complete microservices migration.
+  - **License**: Added `LICENSE.md` (MIT License).
+- Fixes:
+  - Removed confusing/unused code that caused import errors at root level.
+- Breaking Changes
+
 ## [0.4.2] - 2026-02-01
 
 - Status: Test Suite Isolation
