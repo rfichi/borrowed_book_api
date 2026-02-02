@@ -77,3 +77,14 @@ description: "Manages git branching, commits, and PRs according to project stand
   - {fix_description}
 - Breaking Changes
 ```
+
+## 6. Version Synchronization
+**Trigger:** When updating `CHANGELOG.md` with a new version.
+**Rule:** The version number in `CHANGELOG.md` must be synchronized across the following files:
+- `setup.py` (if present)
+- `pyproject.toml` (if present)
+
+**Steps:**
+1. Extract the new version number from the `CHANGELOG.md` entry (e.g., `0.4.3`).
+2. Update the `version` field in `setup.py`.
+3. Update the `version` field in `pyproject.toml`.
