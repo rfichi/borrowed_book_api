@@ -39,8 +39,13 @@ description: "Enforces rules for CLI commands, planning phases, and OS-specific 
 
 ## 6. Atomic Git Operations
 **Rule:** NEVER chain `git commit` and `git push` in the same command execution (e.g., `git commit -m "..."; git push`).
+- **PROHIBITED:** `git commit -m "msg"; git push`
+- **PROHIBITED:** `git commit -m "msg" && git push`
 - **Process:**
   1. Execute `git add` and `git commit` first.
   2. Verify the commit succeeded (check for exit code 0 and no pre-commit hook failures).
-  3. ONLY if the commit was successful, execute `git push` in a subsequent step or tool call.
-- **Reasoning:** Pre-commit hooks often fail and modify files. Chaining push causes confusion or pushes partial/incorrect states.
+  3. ONLY if the commit was successful, execute `git push` in a SEPARATE subsequent tool call.
+- **Reasoning:**
+  - Pre-commit hooks often fail or modify files (formatting).
+  - Chaining causes the push to execute even if hooks failed (in `;` case) or confuses the state.
+  - You MUST verify the commit actually happened before pushing.
