@@ -29,6 +29,7 @@ description: "Manages git branching, commits, and PRs according to project stand
 **Requirements:**
 - **Update Changelog (MANDATORY):** The Agent MUST update `CHANGELOG.md` before committing any `feat`, `fix`, or significant `chore`.
   - Use the format defined in [Section 5: Changelog Format](#5-changelog-format).
+  - **APPEND-ONLY Policy:** NEVER delete or modify existing entries from previous versions. Only ADD new lines for the current changes.
   - This is a strict rule: No changelog update = No commit.
 - **Automation:** The project uses `pre-commit` hooks. These will run automatically on `git commit`.
 - **Manual Run:** To run checks manually, use `pre-commit run --all-files`.
@@ -58,6 +59,11 @@ description: "Manages git branching, commits, and PRs according to project stand
 ## 4. Pushing & Pull Requests
 **Trigger:** When the user requests to push their changes to the remote repository.
 
+**CRITICAL RULE: NO CHAINING**
+- **NEVER** chain `git commit` and `git push` in the same command (e.g., `git commit -m "..."; git push`).
+- **ALWAYS** wait for `git commit` to finish and pass all hooks/tests.
+- **ONLY** run `git push` after verifying the commit was successful.
+
 **Steps:**
 1. **Push:** `git push -u origin <current_branch_name>`
 2. **Create PR:**
@@ -67,6 +73,12 @@ description: "Manages git branching, commits, and PRs according to project stand
 
 <a id="5-changelog-format"></a>
 ## 5. Changelog Format
+
+**STRICT RULE:** This file is **APPEND-ONLY**.
+- **NEVER** remove old version entries.
+- **NEVER** rewrite history.
+- **ONLY** add new content under the current version header.
+
 **Structure:**
 ```markdown
 ## [{version}] - {date}
