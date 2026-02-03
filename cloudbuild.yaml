@@ -112,8 +112,8 @@ steps:
     args:
       - -c
       - |
-        pip install httpx
-        python demo/verify_gateway.py
+        pip install httpx pytest
+        pytest tests/e2e
     secretEnv: ['API_KEY']
     id: 'e2e-tests'
     waitFor: ['deploy-users', 'deploy-books', 'deploy-borrow']

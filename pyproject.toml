@@ -4,12 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "borrowed_book_system"
-version = "0.5.2"
+version = "0.5.4"
 description = "FastAPI service for managing borrowed books"
 requires-python = ">=3.10"
 authors = [{ name = "Rusel Fichi" }]
 dependencies = []
 
 [tool.pytest.ini_options]
+markers = [
+    "e2e: end-to-end tests",
+    "anyio: async tests"
+]
 pythonpath = "."
 testpaths = ["tests"]

@@ -1,4 +1,4 @@
-# 📘 Books Borrowing API  
+# 📘 Books Borrowing API
 ### One-Page Technical Design Document
 
 ---
@@ -23,12 +23,12 @@ The API enables:
 
 ## 2. Core Design Principles
 
-- RESTful resource-oriented API  
-- Clear separation of concerns  
-- Explicit data contracts  
-- Dependency injection  
-- Testable, maintainable architecture  
-- Minimal assumptions, scalable by design  
+- RESTful resource-oriented API
+- Clear separation of concerns
+- Explicit data contracts
+- Dependency injection
+- Testable, maintainable architecture
+- Minimal assumptions, scalable by design
 
 ---
 
@@ -44,17 +44,17 @@ The API enables:
 | Configuration | python-dotenv |
 | Migrations (optional) | Alembic |
 
-SQLite is used for simplicity and local development.  
+SQLite is used for simplicity and local development.
 The system must allow switching to PostgreSQL or MySQL via configuration only.
 
 ---
 
 ## 4. Configuration Strategy
 
-- Database configuration must be centralized  
-- SQLite3 must be used as the default database engine  
-- The database connection string must be configurable via environment variables  
-- No hardcoded infrastructure logic should exist in business code  
+- Database configuration must be centralized
+- SQLite3 must be used as the default database engine
+- The database connection string must be configurable via environment variables
+- No hardcoded infrastructure logic should exist in business code
 
 ---
 
@@ -95,13 +95,13 @@ The system is divided into **six layers**, each with a single responsibility.
 - ORM models defining tables and relationships
 
 **Models**
-- User: represents system users  
-- Book: represents books and availability state  
-- BorrowRecord: junction table tracking borrow and return history  
+- User: represents system users
+- Book: represents books and availability state
+- BorrowRecord: junction table tracking borrow and return history
 
 **Constraints**
-- No request validation  
-- No HTTP concerns  
+- No request validation
+- No HTTP concerns
 
 ---
 
@@ -124,13 +124,13 @@ The system is divided into **six layers**, each with a single responsibility.
 - Delegate logic to services
 
 **Routers**
-- /books  
-- /users  
-- /books/{id}/borrow  
+- /books
+- /users
+- /books/{id}/borrow
 
 **Constraints**
-- No business rules  
-- Minimal logic  
+- No business rules
+- Minimal logic
 
 ---
 
@@ -140,35 +140,35 @@ The system is divided into **six layers**, each with a single responsibility.
 - Enforce domain rules
 
 **Examples**
-- A book cannot be borrowed twice  
-- Borrowing creates a historical record  
-- Returning a book updates availability and timestamps  
+- A book cannot be borrowed twice
+- Borrowing creates a historical record
+- Returning a book updates availability and timestamps
 
 ---
 
 ## 6. API Resource Model (Conceptual)
 
-User  
-└── BorrowRecord  
-  └── Book  
+User
+└── BorrowRecord
+  └── Book
 
 ---
 
 ## 7. REST Conventions
 
-- Use nouns, not verbs  
-- Use HTTP methods for intent  
-- Use proper status codes  
+- Use nouns, not verbs
+- Use HTTP methods for intent
+- Use proper status codes
 
 ---
 
 ## 8. Expected Outcomes
 
 This design ensures:
-- Clear ownership of responsibilities  
-- Easy onboarding for new engineers or AI agents  
-- Safe evolution of the system  
-- Production readiness without overengineering  
+- Clear ownership of responsibilities
+- Easy onboarding for new engineers or AI agents
+- Safe evolution of the system
+- Production readiness without overengineering
 
 ---
 
@@ -184,16 +184,16 @@ This design allows the system to start simple with SQLite while keeping the door
 
 ## 11. Q&A
 
-**How will the system handle concurrent requests?**  
+**How will the system handle concurrent requests?**
 SQLite is not designed for high concurrency. In production, PostgreSQL or MySQL should be used.
 
-**Is it possible to switch the database engine without code changes?**  
+**Is it possible to switch the database engine without code changes?**
 Yes, the database connection string is configurable.
 
-**How will the system handle book availability?**  
+**How will the system handle book availability?**
 The system tracks book availability using the `Book` model.
 
-**How will the system handle user borrowing history?**  
+**How will the system handle user borrowing history?**
 The system tracks borrowing history using the `BorrowRecord` model.
 
 **You’re designing a REST API for books. What should the endpoint be for borrowing a book with ID 5?**
