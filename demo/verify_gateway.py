@@ -2,6 +2,7 @@ import httpx
 import uuid
 import os
 import sys
+import time
 
 GATEWAY_URL = "https://borrow-gateway-bwzk395v.uc.gateway.dev"
 API_KEY = os.getenv("API_KEY")
@@ -23,6 +24,7 @@ def get_headers(token=None):
 
 def test_gateway():
     print(f"Testing Gateway: {GATEWAY_URL}")
+    start_time = time.time()
 
     # 1. Signup
     username = f"user_{uuid.uuid4().hex[:8]}"
@@ -242,6 +244,8 @@ def test_gateway():
             f"   Return non-existent book: FAILED (Expected 404, got {resp.status_code} {resp.text})"
         )
         sys.exit(1)
+
+    print(f"Final time: {time.time() - start_time}")
 
 
 if __name__ == "__main__":
