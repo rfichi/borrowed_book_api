@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored project structure: Moved existing unit tests to `tests/unit/`.
 - Updated `cloudbuild.yaml` to run `pytest tests/e2e` instead of `verify_gateway.py` script.
 - Updated `conftest.py` files to reflect new directory depth.
+- Updated Agent Skills documentation to enforce strict git workflow rules (no command chaining, append-only changelog).
+- Fixed `ci-tests.yaml` triggers: Added `push` to `main` and `workflow_dispatch` to ensure pipeline stability.
 
 ## [0.5.3] - 2026-02-02
 

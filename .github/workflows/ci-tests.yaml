@@ -1,8 +1,18 @@
 name: CI/CD Tests
 
 on:
+  push:
+    branches:
+      - "main"
+      - "feature/*"
+      - "chore/*"
+      - "fix/*"
+      - "hotfix/*"
+      - "refactor/*"
+      - "test/*"
   pull_request:
     branches: ["main"]
+  workflow_dispatch:
 
 jobs:
   test:
