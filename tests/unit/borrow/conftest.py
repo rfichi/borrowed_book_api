@@ -41,6 +41,8 @@ def borrow_modules():
     import service
     import routers
     import models
+    import config
+    import schemas
 
     # Yield modules as a simple object or dict
     class Modules:
@@ -53,6 +55,8 @@ def borrow_modules():
     modules.service = service
     modules.routers = routers
     modules.models = models
+    modules.config = config
+    modules.schemas = schemas
 
     yield modules
 

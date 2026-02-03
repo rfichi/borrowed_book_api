@@ -125,3 +125,51 @@ def test_authenticate_user_invalid(users_modules, mock_db_session):
         )
 
     assert exc.value.status_code == 401
+
+
+def test_create_user_wrapper(users_modules, mock_db_session):
+    service = users_modules.service
+    schemas = users_modules.schemas
+
+    user_create = schemas.UserCreate(
+        name="Wrapper User", email="wrapper@example.com", password="password"
+    )
+
+    with patch("service.create_user_with_password") as mock_create:
+        mock_create.return_value = "mock_user"
+        result = service.create_user(mock_db_session, user_create)
+
+        assert result == "mock_user"
+        mock_create.assert_called_once_with(
+            mock_db_session,
+            name=user_create.name,
+            email=user_create.email,
+            password=user_create.password,
+        )
+
+
+def test_get_user_by_email_found(users_modules, mock_db_session, mock_user):
+    service = users_modules.service
+    models = users_modules.models
+
+    email = "test@example.com"
+    mock_account = models.AuthAccount(user_id=1, email=email)
+
+    # Mock account query found
+    mock_db_session.query.return_value.filter.return_value.first.side_effect = [
+        mock_account,  # Account found
+        mock_user,  # User found
+    ]
+
+    result = service.get_user_by_email(mock_db_session, email)
+    assert result == mock_user
+
+
+def test_get_user_by_email_not_found(users_modules, mock_db_session):
+    service = users_modules.service
+
+    # Mock account query not found
+    mock_db_session.query.return_value.filter.return_value.first.return_value = None
+
+    result = service.get_user_by_email(mock_db_session, "missing@example.com")
+    assert result is None

@@ -18,7 +18,7 @@ description: "Manages git branching, commits, and PRs according to project stand
    - `git pull origin main`
 4. **Create Branch:**
    - Format: `<type>/<name>`
-   - Types: `feature`, `fix`, `hotfix`, `chore`, `refactor`
+   - Types: `feature`, `fix`, `hotfix`, `chore`, `refactor`, `test`
    - Example: `git checkout -b feature/user-auth-endpoints`
 5. **Restore Changes:**
    - If changes were stashed: `git stash apply`
