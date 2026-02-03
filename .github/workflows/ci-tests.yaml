@@ -37,4 +37,4 @@ jobs:
         run: |
           # Run pytest with coverage for the specific service module
           # --cov-fail-under=70 will fail the build if coverage is below 70%
-          pytest --cov=services/${{ matrix.service }} --cov-fail-under=60 tests/${{ matrix.service }}
+          pytest --cov=services/${{ matrix.service }} --cov-fail-under=60 tests/unit/${{ matrix.service }}

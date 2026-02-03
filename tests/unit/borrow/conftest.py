@@ -7,10 +7,9 @@ from httpx import AsyncClient, ASGITransport
 from sqlalchemy.orm import Session
 
 # Add the service directory to sys.path so imports work
-# Current file: tests/users/conftest.py
-# Target: services/users
-# We need to make sure we're not accidentally importing from books or other services
-SERVICE_PATH = str(Path(__file__).parents[2] / "services" / "users")
+# Current file: tests/borrow/conftest.py
+# Target: services/borrow
+SERVICE_PATH = str(Path(__file__).parents[3] / "services" / "borrow")
 
 COMMON_MODULES = [
     "main",
@@ -25,11 +24,11 @@ COMMON_MODULES = [
 
 
 @pytest.fixture(scope="module")
-def users_modules():
+def borrow_modules():
     """
-    Sets up the environment for users service tests.
+    Sets up the environment for borrow service tests.
     Imports modules and returns them.
-    Cleans up sys.modules after usage.
+    Cleans up sys.modules after usage to prevent pollution.
     """
     # Setup path
     if SERVICE_PATH not in sys.path:
@@ -43,7 +42,7 @@ def users_modules():
     import routers
     import models
 
-    # Yield modules
+    # Yield modules as a simple object or dict
     class Modules:
         pass
 
@@ -57,7 +56,7 @@ def users_modules():
 
     yield modules
 
-    # Teardown
+    # Teardown: Remove path and unload modules
     if SERVICE_PATH in sys.path:
         sys.path.remove(SERVICE_PATH)
 
@@ -75,25 +74,21 @@ def mock_db_session():
 
 @pytest.fixture
 def mock_user():
-    """Returns a mock user."""
+    """Returns a mock user (as a dict/object expected by security)."""
     mock = MagicMock()
     mock.id = 1
-    mock.name = "Test User"
     mock.email = "test@example.com"
     return mock
 
 
 @pytest.fixture
-async def client(users_modules, mock_db_session, mock_user):
+async def client(borrow_modules, mock_db_session, mock_user):
     """
     Returns a TestClient with overridden dependencies.
     """
-    app = users_modules.main.app
-    get_db = users_modules.database.get_db
-    get_current_user = users_modules.security.get_current_user
-    get_current_user_or_internal_api_key = (
-        users_modules.security.get_current_user_or_internal_api_key
-    )
+    app = borrow_modules.main.app
+    get_db = borrow_modules.database.get_db
+    get_current_user = borrow_modules.security.get_current_user
 
     def override_get_db():
         try:
@@ -104,14 +99,8 @@ async def client(users_modules, mock_db_session, mock_user):
     def override_get_current_user():
         return mock_user
 
-    def override_get_current_user_or_api_key():
-        return mock_user
-
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_get_current_user
-    app.dependency_overrides[
-        get_current_user_or_internal_api_key
-    ] = override_get_current_user_or_api_key
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"

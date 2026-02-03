@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 # Add the service directory to sys.path so imports work
 # Current file: tests/books/conftest.py
 # Target: services/books
-SERVICE_PATH = str(Path(__file__).parents[2] / "services" / "books")
+SERVICE_PATH = str(Path(__file__).parents[3] / "services" / "books")
 
 COMMON_MODULES = [
     "main",
