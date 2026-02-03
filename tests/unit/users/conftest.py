@@ -42,6 +42,8 @@ def users_modules():
     import service
     import routers
     import models
+    import config
+    import schemas
 
     # Yield modules
     class Modules:
@@ -54,6 +56,8 @@ def users_modules():
     modules.service = service
     modules.routers = routers
     modules.models = models
+    modules.config = config
+    modules.schemas = schemas
 
     yield modules
 

@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.5] - 2026-02-03
+
+### Added
+- Expanded unit test coverage for `borrow`, `books`, and `users` services to achieve >90% coverage.
+- Added `diff-cover` to pre-commit hooks to enforce 90% coverage on new lines.
+
+### Changed
+- Updated `ci-tests.yaml` to fail if test coverage is below 90%.
+- Updated `pre-commit-config.yaml` to include XML coverage generation.
+
 ## [0.5.4] - 2026-02-03
 
 ### Added

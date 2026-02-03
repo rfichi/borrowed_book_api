@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import patch
 from fastapi import HTTPException
+import httpx
 
 
 def test_borrow_book_success(borrow_modules, mock_db_session):
@@ -86,3 +87,119 @@ def test_return_book_no_active_record(borrow_modules, mock_db_session):
         with pytest.raises(HTTPException) as exc:
             service.return_book(mock_db_session, 1, 1)
         assert exc.value.status_code == 404
+
+
+def test_validate_user_via_api_success(borrow_modules):
+    service = borrow_modules.service
+
+    with patch("httpx.get") as mock_get:
+        mock_get.return_value.status_code = 200
+        service.validate_user_via_api(1)
+        mock_get.assert_called_once()
+
+
+def test_validate_user_via_api_not_found(borrow_modules):
+    service = borrow_modules.service
+
+    with patch("httpx.get") as mock_get:
+        mock_get.return_value.status_code = 404
+        with pytest.raises(HTTPException) as exc:
+            service.validate_user_via_api(1)
+        assert exc.value.status_code == 404
+
+
+def test_validate_user_via_api_error(borrow_modules):
+    service = borrow_modules.service
+
+    with patch("httpx.get") as mock_get:
+        mock_get.return_value.status_code = 500
+        with pytest.raises(HTTPException) as exc:
+            service.validate_user_via_api(1)
+        assert exc.value.status_code == 500
+
+
+def test_validate_user_via_api_unavailable(borrow_modules):
+    service = borrow_modules.service
+
+    with patch("httpx.get", side_effect=httpx.RequestError("Error")):
+        with pytest.raises(HTTPException) as exc:
+            service.validate_user_via_api(1)
+        assert exc.value.status_code == 503
+
+
+def test_validate_book_via_api_success(borrow_modules):
+    service = borrow_modules.service
+
+    with patch("httpx.get") as mock_get:
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {"is_available": True}
+        service.validate_book_via_api(1)
+        mock_get.assert_called_once()
+
+
+def test_validate_book_via_api_not_available(borrow_modules):
+    service = borrow_modules.service
+
+    with patch("httpx.get") as mock_get:
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {"is_available": False}
+        with pytest.raises(HTTPException) as exc:
+            service.validate_book_via_api(1)
+        assert exc.value.status_code == 403
+
+
+def test_validate_book_via_api_not_found(borrow_modules):
+    service = borrow_modules.service
+
+    with patch("httpx.get") as mock_get:
+        mock_get.return_value.status_code = 404
+        with pytest.raises(HTTPException) as exc:
+            service.validate_book_via_api(1)
+        assert exc.value.status_code == 404
+
+
+def test_validate_book_via_api_unavailable(borrow_modules):
+    service = borrow_modules.service
+
+    with patch("httpx.get", side_effect=httpx.RequestError("Error")):
+        with pytest.raises(HTTPException) as exc:
+            service.validate_book_via_api(1)
+        assert exc.value.status_code == 503
+
+
+def test_update_book_availability_via_api_success(borrow_modules):
+    service = borrow_modules.service
+
+    with patch("httpx.patch") as mock_patch:
+        mock_patch.return_value.status_code = 200
+        service.update_book_availability_via_api(1, False)
+        mock_patch.assert_called_once()
+
+
+def test_update_book_availability_via_api_not_found(borrow_modules):
+    service = borrow_modules.service
+
+    with patch("httpx.patch") as mock_patch:
+        mock_patch.return_value.status_code = 404
+        with pytest.raises(HTTPException) as exc:
+            service.update_book_availability_via_api(1, False)
+        assert exc.value.status_code == 404
+
+
+def test_update_book_availability_via_api_error(borrow_modules):
+    service = borrow_modules.service
+
+    with patch("httpx.patch") as mock_patch:
+        mock_patch.return_value.status_code = 500
+        with pytest.raises(HTTPException) as exc:
+            service.update_book_availability_via_api(1, False)
+        assert exc.value.status_code == 500
+
+
+def test_update_book_availability_via_api_unavailable(borrow_modules):
+    service = borrow_modules.service
+
+    with patch("httpx.patch", side_effect=httpx.RequestError("Error")):
+        with pytest.raises(HTTPException) as exc:
+            service.update_book_availability_via_api(1, False)
+        assert exc.value.status_code == 503

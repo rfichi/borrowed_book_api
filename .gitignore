@@ -29,6 +29,7 @@ borrowed_books.db
 
 # Coverage/Test
 .coverage
+coverage.xml
 .pytest_cache/
 
 # Logs
