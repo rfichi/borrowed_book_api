@@ -102,3 +102,12 @@ description: "Manages git branching, commits, and PRs according to project stand
 1. Extract the new version number from the `CHANGELOG.md` entry (e.g., `0.4.3`).
 2. Update the `version` field in `setup.py`.
 3. Update the `version` field in `pyproject.toml`.
+
+## 7. Safe Git Command Execution
+**Rule:** When executing inspection commands (`git log`, `git show`, `git diff`), **ALWAYS** use the `--no-pager` flag.
+- **Reasoning:** By default, these commands open a pager (like `less`) which waits for user input and locks the agent's execution environment.
+- **Required Format:**
+  - `git --no-pager log ...` OR `git log --no-pager ...` (git handles both, but `git --no-pager <cmd>` is safest)
+  - `git --no-pager show ...`
+  - `git --no-pager diff ...`
+- **Example:** `git --no-pager log -n 1`

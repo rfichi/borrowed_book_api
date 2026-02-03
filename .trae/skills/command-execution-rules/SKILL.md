@@ -49,3 +49,12 @@ description: "Enforces rules for CLI commands, planning phases, and OS-specific 
   - Pre-commit hooks often fail or modify files (formatting).
   - Chaining causes the push to execute even if hooks failed (in `;` case) or confuses the state.
   - You MUST verify the commit actually happened before pushing.
+
+## 7. Non-Interactive Git Commands
+**Rule:** When executing `git log`, `git show`, or `git diff`, **ALWAYS** suppress the pager to prevent hanging the session.
+- **Flag:** `--no-pager`
+- **Usage:**
+  - `git --no-pager log ...`
+  - `git --no-pager show ...`
+  - `git --no-pager diff ...`
+- **Why:** These commands default to interactive pagers that require manual `q` to exit, which the agent cannot provide, causing a timeout or lock.
