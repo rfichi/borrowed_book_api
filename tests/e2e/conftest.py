@@ -1,5 +1,6 @@
 import os
 import pytest
+import httpx
 
 
 @pytest.fixture(scope="session")
@@ -18,3 +19,9 @@ def gateway_url():
 @pytest.fixture(scope="session")
 def headers(api_key):
     return {"x-api-key": api_key}
+
+
+@pytest.fixture(scope="session")
+def client(gateway_url, headers):
+    with httpx.Client(base_url=gateway_url, headers=headers, timeout=60.0) as client:
+        yield client
