@@ -36,28 +36,44 @@ def test_postgres_url_replacement(books_modules):
     import sys
     from importlib import reload
 
-    with patch("config.get_settings") as mock_settings:
+    with patch("config.get_settings") as mock_settings, patch(
+        "sqlalchemy.ext.asyncio.create_async_engine"
+    ) as mock_create_engine:
         mock_settings.return_value.DATABASE_URL = "postgresql://user:pass@localhost/db"
 
         # Reload database module
         if "database" in sys.modules:
             reload(sys.modules["database"])
 
-        from database import SQLALCHEMY_DATABASE_URL
+        # Verify create_async_engine was called
+        assert mock_create_engine.called
 
-        assert "postgresql+asyncpg://" in SQLALCHEMY_DATABASE_URL
+        # Get the first argument passed to create_async_engine
+        args, _ = mock_create_engine.call_args
+        url = args[0]
+
+        # Check the drivername
+        assert url.drivername == "postgresql+asyncpg"
 
 
 def test_sqlite_url_replacement(books_modules):
     import sys
     from importlib import reload
 
-    with patch("config.get_settings") as mock_settings:
+    with patch("config.get_settings") as mock_settings, patch(
+        "sqlalchemy.ext.asyncio.create_async_engine"
+    ) as mock_create_engine:
         mock_settings.return_value.DATABASE_URL = "sqlite:///test.db"
 
         if "database" in sys.modules:
             reload(sys.modules["database"])
 
-        from database import SQLALCHEMY_DATABASE_URL
+        # Verify create_async_engine was called
+        assert mock_create_engine.called
 
-        assert "sqlite+aiosqlite:///" in SQLALCHEMY_DATABASE_URL
+        # Get the first argument passed to create_async_engine
+        args, _ = mock_create_engine.call_args
+        url = args[0]
+
+        # Check the drivername
+        assert url.drivername == "sqlite+aiosqlite"
