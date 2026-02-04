@@ -33,3 +33,10 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
+      - id: local-e2e
+        name: Local E2E Tests
+        entry: powershell.exe -ExecutionPolicy Bypass -File scripts/local-e2e.ps1
+        language: system
+        pass_filenames: false
+        always_run: true

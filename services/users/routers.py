@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +14,7 @@ from service import (
 )
 from security import get_current_user, get_current_user_or_internal_api_key
 
+_logger = logging.getLogger(__name__)
 users_router = APIRouter(prefix="/users", tags=["users"])
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -54,6 +56,7 @@ async def create_user_endpoint(
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> UserOut:
+    _logger.info(f"Created user {payload.name} with email {payload.email}")
     user = await create_user(db, payload)
     return user
 
