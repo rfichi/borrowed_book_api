@@ -36,7 +36,7 @@ repos:
 
       - id: local-e2e
         name: Local E2E Tests
-        entry: powershell.exe -ExecutionPolicy Bypass -File scripts/local-e2e.ps1
+        entry: powershell.exe -ExecutionPolicy Bypass -File scripts/run_local_e2e.ps1 -build
         language: system
         pass_filenames: false
         always_run: true

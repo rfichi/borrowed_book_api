@@ -32,7 +32,14 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Starting local environment..."
-docker-compose up -d --build
+if ($build) {
+    Write-Host "Building images as requested..." -ForegroundColor Cyan
+    docker-compose up -d --build
+}
+else {
+    Write-Host "Starting with existing images..." -ForegroundColor Cyan
+    docker-compose up -d
+}
 
 Write-Host "Waiting for services to be ready (up to 60s)..."
 $retries = 0
