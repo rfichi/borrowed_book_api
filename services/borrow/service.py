@@ -2,7 +2,8 @@
 2026 Module responsible for defining all borrow related services
 """
 from datetime import datetime
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from fastapi import HTTPException, status
 from models import BorrowRecord
 import httpx
@@ -15,15 +16,16 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
-def validate_user_via_api(user_id: int):
+async def validate_user_via_api(user_id: int):
     """
     Validate if user exists via Users Service API.
     """
     try:
         headers = {"x-internal-api-key": settings.INTERNAL_API_KEY}
-        response = httpx.get(
-            f"{settings.USERS_SERVICE_URL}/users/{user_id}", headers=headers
-        )
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{settings.USERS_SERVICE_URL}/users/{user_id}", headers=headers
+            )
         logger.info(f"User reponse status code is {response.status_code}")
         if response.status_code == 404:
             raise HTTPException(
@@ -44,15 +46,16 @@ def validate_user_via_api(user_id: int):
         )
 
 
-def validate_book_via_api(book_id: int):
+async def validate_book_via_api(book_id: int):
     """
     Validate if book exists and is available via Books Service API.
     """
     try:
         headers = {"x-internal-api-key": settings.INTERNAL_API_KEY}
-        response = httpx.get(
-            f"{settings.BOOKS_SERVICE_URL}/books/{book_id}", headers=headers
-        )
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{settings.BOOKS_SERVICE_URL}/books/{book_id}", headers=headers
+            )
         logger.info(f"Book response status code is {response.status_code}")
         if response.status_code == 404:
             raise HTTPException(
@@ -77,18 +80,19 @@ def validate_book_via_api(book_id: int):
         )
 
 
-def update_book_availability_via_api(book_id: int, is_available: bool):
+async def update_book_availability_via_api(book_id: int, is_available: bool):
     """
     Update the availability status of a book via the Books Service API.
     """
     try:
         headers = {"x-internal-api-key": settings.INTERNAL_API_KEY}
         payload = {"is_available": is_available}
-        response = httpx.patch(
-            f"{settings.BOOKS_SERVICE_URL}/books/{book_id}/availability",
-            headers=headers,
-            json=payload,
-        )
+        async with httpx.AsyncClient() as client:
+            response = await client.patch(
+                f"{settings.BOOKS_SERVICE_URL}/books/{book_id}/availability",
+                headers=headers,
+                json=payload,
+            )
         logger.info(
             f"Update book availability response status code: {response.status_code}"
         )
@@ -112,7 +116,7 @@ def update_book_availability_via_api(book_id: int, is_available: bool):
         )
 
 
-def borrow_book(db: Session, book_id: int, user_id: int) -> BorrowRecord:
+async def borrow_book(db: AsyncSession, book_id: int, user_id: int) -> BorrowRecord:
     """
     Record a user borrowing a book.
     :param db: Database connection used to interact with database objects.
@@ -122,11 +126,11 @@ def borrow_book(db: Session, book_id: int, user_id: int) -> BorrowRecord:
     :raises: HTTPException if book not found, user not found, or book not available.
     """
     # 1. Validate via External APIs (Sync Inter-communication)
-    validate_user_via_api(user_id)
-    validate_book_via_api(book_id)
+    await validate_user_via_api(user_id)
+    await validate_book_via_api(book_id)
 
     # 2. Update Book Availability via API
-    update_book_availability_via_api(book_id, False)
+    await update_book_availability_via_api(book_id, False)
 
     # 3. Create Borrow Record locally
     record = BorrowRecord(
@@ -136,12 +140,12 @@ def borrow_book(db: Session, book_id: int, user_id: int) -> BorrowRecord:
         returned_at=None,
     )
     db.add(record)
-    db.commit()
-    db.refresh(record)
+    await db.commit()
+    await db.refresh(record)
     return record
 
 
-def return_book(db: Session, book_id: int, user_id: int) -> BorrowRecord:
+async def return_book(db: AsyncSession, book_id: int, user_id: int) -> BorrowRecord:
     """
     Record a user returning a book.
     :param db: Database connection used to interact with database objects.
@@ -151,21 +155,22 @@ def return_book(db: Session, book_id: int, user_id: int) -> BorrowRecord:
     :raises: HTTPException if book/user not found or no active borrow record exists.
     """
     # 1. Validate via External APIs
-    validate_user_via_api(user_id)
+    await validate_user_via_api(user_id)
     # We don't necessarily need to validate book existence if we are returning it,
     # but we should check if an active record exists.
 
     # 2. Find Active Borrow Record
-    record = (
-        db.query(BorrowRecord)
+    result = await db.execute(
+        select(BorrowRecord)
         .filter(
             BorrowRecord.book_id == book_id,
             BorrowRecord.user_id == user_id,
             BorrowRecord.returned_at.is_(None),
         )
         .order_by(BorrowRecord.borrowed_at.desc())
-        .first()
     )
+    record = result.scalars().first()
+
     if not record:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -173,11 +178,11 @@ def return_book(db: Session, book_id: int, user_id: int) -> BorrowRecord:
         )
 
     # 3. Update Book Availability via API
-    update_book_availability_via_api(book_id, True)
+    await update_book_availability_via_api(book_id, True)
 
     # 4. Update local Borrow Record
     record.returned_at = datetime.utcnow()
     db.add(record)
-    db.commit()
-    db.refresh(record)
+    await db.commit()
+    await db.refresh(record)
     return record

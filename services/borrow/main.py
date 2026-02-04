@@ -8,14 +8,27 @@ from database import engine, Base, get_db
 from routers import borrow_router
 from config import get_settings
 from models import AuthAccount
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from models import AuthAccount
 from security import create_access_token
 from models import User, AuthAccount
 from security import get_password_hash
+from contextlib import asynccontextmanager
 
 settings = get_settings()
 security_basic = HTTPBasic()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: create tables
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    # Shutdown
+    await engine.dispose()
+
 
 app = FastAPI(
     title="Borrowed Book System - Borrow Service",
@@ -23,9 +36,8 @@ app = FastAPI(
     redoc_url=None,
     openapi_url="/openapi.json",
     redirect_slashes=False,
+    lifespan=lifespan,
 )
-
-Base.metadata.create_all(bind=engine)
 
 app.include_router(borrow_router)
 
@@ -74,27 +86,28 @@ def custom_openapi():
 app.openapi = custom_openapi
 
 
-def ensure_docs_user(db: Session, email: str, password: str):
-    account = db.query(AuthAccount).filter(AuthAccount.email == email).first()
+async def ensure_docs_user(db: AsyncSession, email: str, password: str):
+    result = await db.execute(select(AuthAccount).where(AuthAccount.email == email))
+    account = result.scalars().first()
     if not account:
         user = User(name="Docs", email=email)
         db.add(user)
-        db.commit()
-        db.refresh(user)
+        await db.commit()
+        await db.refresh(user)
         account = AuthAccount(
             user_id=user.id, email=email, password_hash=get_password_hash(password)
         )
         db.add(account)
-        db.commit()
+        await db.commit()
 
 
 @app.get("/docs", include_in_schema=False)
-def docs(
+async def docs(
     credentials: HTTPBasicCredentials = Depends(docs_auth),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     email = "docs@example.com"
-    ensure_docs_user(db, email, settings.DOCS_PASSWORD)
+    await ensure_docs_user(db, email, settings.DOCS_PASSWORD)
     token = create_access_token({"sub": email})
     html = f"""
     <!DOCTYPE html>

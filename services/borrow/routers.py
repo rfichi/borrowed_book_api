@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db
 from schemas import BorrowRequest, BorrowRecordOut
 from service import borrow_book, return_book
@@ -13,13 +13,13 @@ borrow_router = APIRouter(prefix="/borrow", tags=["borrow"])
     response_model=BorrowRecordOut,
     status_code=status.HTTP_202_ACCEPTED,
 )
-def borrow_book_endpoint(
+async def borrow_book_endpoint(
     book_id: int,
     payload: BorrowRequest,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> BorrowRecordOut:
-    record = borrow_book(db, book_id, payload.user_id)
+    record = await borrow_book(db, book_id, payload.user_id)
     return record
 
 
@@ -28,11 +28,11 @@ def borrow_book_endpoint(
     response_model=BorrowRecordOut,
     status_code=status.HTTP_202_ACCEPTED,
 )
-def return_book_endpoint(
+async def return_book_endpoint(
     book_id: int,
     payload: BorrowRequest,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> BorrowRecordOut:
-    record = return_book(db, book_id, payload.user_id)
+    record = await return_book(db, book_id, payload.user_id)
     return record

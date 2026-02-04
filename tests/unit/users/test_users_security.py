@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 from fastapi import HTTPException
 from jose import jwt
 from datetime import timedelta
@@ -50,7 +50,8 @@ def test_create_access_token_with_expires(users_modules):
     assert "exp" in decoded
 
 
-def test_get_current_user_success(users_modules, mock_db_session):
+@pytest.mark.asyncio
+async def test_get_current_user_success(users_modules, mock_db_session):
     security = users_modules.security
     models = users_modules.models
 
@@ -65,39 +66,90 @@ def test_get_current_user_success(users_modules, mock_db_session):
         mock_user.id = 1
         mock_user.email = "test@example.com"
 
-        # Mock chaining: db.query(...).filter(...).first()
-        query_mock = mock_db_session.query.return_value
-        filter_mock = query_mock.filter.return_value
-        filter_mock.first.side_effect = [mock_account, mock_user]
+        # Mock chaining: db.execute(select(...))
+        mock_result_account = MagicMock()
+        mock_result_account.scalars.return_value.first.return_value = mock_account
 
-        user = security.get_current_user(token="valid_token", db=mock_db_session)
+        mock_result_user = MagicMock()
+        mock_result_user.scalars.return_value.first.return_value = mock_user
+
+        mock_db_session.execute.side_effect = [mock_result_account, mock_result_user]
+
+        user = await security.get_current_user(token="valid_token", db=mock_db_session)
         assert user == mock_user
 
 
-def test_get_current_user_invalid_token(users_modules, mock_db_session):
+@pytest.mark.asyncio
+async def test_get_current_user_invalid_token(users_modules, mock_db_session):
     security = users_modules.security
 
     with patch("jose.jwt.decode", side_effect=Exception("Invalid token")):
         with pytest.raises(HTTPException) as exc:
-            security.get_current_user(token="invalid_token", db=mock_db_session)
+            await security.get_current_user(token="invalid_token", db=mock_db_session)
         assert exc.value.status_code == 401
 
 
-def test_get_current_user_expired_token(users_modules, mock_db_session):
+@pytest.mark.asyncio
+async def test_get_current_user_expired_token(users_modules, mock_db_session):
     security = users_modules.security
 
     with patch("jose.jwt.decode", side_effect=jwt.ExpiredSignatureError):
         with pytest.raises(HTTPException) as exc:
-            security.get_current_user(token="expired_token", db=mock_db_session)
+            await security.get_current_user(token="expired_token", db=mock_db_session)
         assert exc.value.status_code == 401
 
 
-def test_get_current_user_missing_sub(users_modules, mock_db_session):
+@pytest.mark.asyncio
+async def test_get_current_user_missing_sub(users_modules, mock_db_session):
     security = users_modules.security
 
     with patch("jose.jwt.decode") as mock_decode:
         mock_decode.return_value = {}  # No sub
 
         with pytest.raises(HTTPException) as exc:
-            security.get_current_user(token="valid_token", db=mock_db_session)
+            await security.get_current_user(token="valid_token", db=mock_db_session)
         assert exc.value.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_get_current_user_or_internal_api_key_with_key(users_modules):
+    security = users_modules.security
+    # Mock settings
+    # security.settings is an instance, we can set attribute
+    original_key = security.settings.INTERNAL_API_KEY
+    security.settings.INTERNAL_API_KEY = "secret_key"
+
+    try:
+        result = await security.get_current_user_or_internal_api_key(
+            x_internal_api_key="secret_key", token=None, db=None
+        )
+        assert result is None
+    finally:
+        security.settings.INTERNAL_API_KEY = original_key
+
+
+@pytest.mark.asyncio
+async def test_get_current_user_or_internal_api_key_with_token(
+    users_modules, mock_db_session, mock_user
+):
+    security = users_modules.security
+
+    # We patch security.get_current_user
+    with patch.object(security, "get_current_user", new_callable=AsyncMock) as mock_get:
+        mock_get.return_value = mock_user
+
+        result = await security.get_current_user_or_internal_api_key(
+            x_internal_api_key=None, token="token", db=mock_db_session
+        )
+        assert result == mock_user
+
+
+@pytest.mark.asyncio
+async def test_get_current_user_or_internal_api_key_missing(users_modules):
+    security = users_modules.security
+
+    with pytest.raises(HTTPException) as exc:
+        await security.get_current_user_or_internal_api_key(
+            x_internal_api_key=None, token=None, db=None
+        )
+    assert exc.value.status_code == 401
