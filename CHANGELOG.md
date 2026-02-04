@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.8] - 2026-02-04
+
+### Added
+- Expanded unit test coverage for `books`, `borrow`, and `users` services by adding specific tests for database connection and app lifespan events.
+- Converted `books`, `borrow`, and `users` service tests to use `pytest-asyncio` and `AsyncMock` consistent with other services.
+- Added `scripts/manual_deploy.ps1` for local manual build and deployment to Cloud Run.
+
+### Changed
+- Refactored  `books`, `borrow`, and `users` service base code and unit tests to be fully asynchronous.
+
+### Fixed
+- Fixed database connection URL parsing to correctly enforce `postgresql+asyncpg` and `sqlite+aiosqlite` drivers.
+- Resolved `ValueError` in Borrow service by correcting the database URL string replacement logic.
+- Updated unit tests to correctly mock `create_async_engine` and verify driver replacement logic.
+
 ## [0.5.7] - 2026-02-03
 
 ### Changed

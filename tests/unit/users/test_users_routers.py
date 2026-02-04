@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 import pytest
 
 
@@ -11,8 +11,9 @@ async def test_signup_endpoint(client, mock_user):
     }
 
     with patch(
-        "routers.create_user_with_password", return_value=mock_user
+        "routers.create_user_with_password", new_callable=AsyncMock
     ) as mock_create:
+        mock_create.return_value = mock_user
         response = await client.post("/auth/signup", json=payload)
 
         assert response.status_code == 201
@@ -23,7 +24,8 @@ async def test_signup_endpoint(client, mock_user):
 
 @pytest.mark.anyio
 async def test_login_endpoint(client):
-    with patch("routers.authenticate_user", return_value="access_token"):
+    with patch("routers.authenticate_user", new_callable=AsyncMock) as mock_auth:
+        mock_auth.return_value = "access_token"
         response = await client.post(
             "/auth/token", data={"username": "test@example.com", "password": "password"}
         )
@@ -32,7 +34,7 @@ async def test_login_endpoint(client):
         assert response.json()["access_token"] == "access_token"
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_me_endpoint(client, mock_user):
     response = await client.get("/auth/me")
 
@@ -40,26 +42,46 @@ async def test_me_endpoint(client, mock_user):
     assert response.json()["email"] == mock_user.email
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
+async def test_create_user_endpoint(client, mock_user):
+    payload = {
+        "name": "Admin User",
+        "email": "admin@example.com",
+        "password": "password",
+    }
+
+    with patch("routers.create_user", new_callable=AsyncMock) as mock_create:
+        mock_create.return_value = mock_user
+        response = await client.post("/users/", json=payload)
+
+        assert response.status_code == 201
+        data = response.json()
+        assert data["email"] == mock_user.email
+
+
+@pytest.mark.asyncio
 async def test_get_user_endpoint_found(client, mock_user):
-    with patch("routers.get_user", return_value=mock_user):
+    with patch("routers.get_user", new_callable=AsyncMock) as mock_get:
+        mock_get.return_value = mock_user
         response = await client.get(f"/users/{mock_user.id}")
 
         assert response.status_code == 200
         assert response.json()["id"] == mock_user.id
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_get_user_endpoint_not_found(client):
-    with patch("routers.get_user", return_value=None):
+    with patch("routers.get_user", new_callable=AsyncMock) as mock_get:
+        mock_get.return_value = None
         response = await client.get("/users/999")
 
         assert response.status_code == 404
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_list_users_endpoint(client, mock_user):
-    with patch("routers.list_users", return_value=(1, [mock_user])):
+    with patch("routers.list_users", new_callable=AsyncMock) as mock_list:
+        mock_list.return_value = (1, [mock_user])
         response = await client.get("/users/")
 
         assert response.status_code == 200
@@ -68,7 +90,7 @@ async def test_list_users_endpoint(client, mock_user):
         assert len(data["results"]) == 1
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_user_borrow_history_endpoint(client):
     # We need to mock the object returned by service, which should match the schema
     # But service returns ORM objects. Pydantic handles conversion.
@@ -81,7 +103,10 @@ async def test_user_borrow_history_endpoint(client):
     mock_orm_record.borrowed_at.isoformat.return_value = "2024-01-01T00:00:00"
     mock_orm_record.returned_at = None
 
-    with patch("routers.get_user_borrow_history", return_value=[mock_orm_record]):
+    with patch(
+        "routers.get_user_borrow_history", new_callable=AsyncMock
+    ) as mock_history:
+        mock_history.return_value = [mock_orm_record]
         response = await client.get("/users/1/borrow-history")
 
         assert response.status_code == 200

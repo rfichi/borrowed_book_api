@@ -1,10 +1,10 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, AsyncMock
 import sys
 from pathlib import Path
 
 import pytest
 from httpx import AsyncClient, ASGITransport
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 # Add the service directory to sys.path so imports work
 # Current file: tests/books/conftest.py
@@ -71,8 +71,8 @@ def books_modules():
 
 @pytest.fixture
 def mock_db_session():
-    """Returns a mock SQLAlchemy session."""
-    session = MagicMock(spec=Session)
+    """Returns a mock AsyncSession."""
+    session = AsyncMock(spec=AsyncSession)
     return session
 
 
@@ -112,16 +112,16 @@ async def client(books_modules, mock_db_session, mock_user):
         books_modules.security.get_current_user_or_internal_api_key
     )
 
-    def override_get_db():
+    async def override_get_db():
         try:
             yield mock_db_session
         finally:
             pass
 
-    def override_get_current_user():
+    async def override_get_current_user():
         return mock_user
 
-    def override_get_current_user_or_api_key():
+    async def override_get_current_user_or_api_key():
         return mock_user
 
     app.dependency_overrides[get_db] = override_get_db

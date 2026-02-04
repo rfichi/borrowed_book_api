@@ -51,7 +51,8 @@ def test_create_access_token_with_expiry(borrow_modules):
     assert "exp" in payload
 
 
-def test_get_current_user_success(borrow_modules, mock_db_session, mock_user):
+@pytest.mark.asyncio
+async def test_get_current_user_success(borrow_modules, mock_db_session, mock_user):
     security = borrow_modules.security
     models = borrow_modules.models
 
@@ -62,39 +63,42 @@ def test_get_current_user_success(borrow_modules, mock_db_session, mock_user):
         mock_account = MagicMock(spec=models.AuthAccount)
         mock_account.user_id = 1
 
-        # Mock chaining: db.query(...).filter(...).first()
-        query_mock = mock_db_session.query.return_value
-        filter_mock = query_mock.filter.return_value
-        filter_mock.first.side_effect = [mock_account, mock_user]
+        # Mock db.execute(select(...))
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.first.side_effect = [mock_account, mock_user]
+        mock_db_session.execute.return_value = mock_result
 
-        user = security.get_current_user(token="valid_token", db=mock_db_session)
+        user = await security.get_current_user(token="valid_token", db=mock_db_session)
         assert user == mock_user
 
 
-def test_get_current_user_invalid_token(borrow_modules, mock_db_session):
+@pytest.mark.asyncio
+async def test_get_current_user_invalid_token(borrow_modules, mock_db_session):
     security = borrow_modules.security
 
     with patch("jose.jwt.decode", side_effect=Exception("Invalid token")):
         with pytest.raises(HTTPException) as exc:
-            security.get_current_user(token="invalid_token", db=mock_db_session)
+            await security.get_current_user(token="invalid_token", db=mock_db_session)
         assert exc.value.status_code == 401
 
 
-def test_get_current_user_expired_token(borrow_modules, mock_db_session):
+@pytest.mark.asyncio
+async def test_get_current_user_expired_token(borrow_modules, mock_db_session):
     security = borrow_modules.security
 
     with patch("jose.jwt.decode", side_effect=jwt.ExpiredSignatureError):
         with pytest.raises(HTTPException) as exc:
-            security.get_current_user(token="expired_token", db=mock_db_session)
+            await security.get_current_user(token="expired_token", db=mock_db_session)
         assert exc.value.status_code == 401
 
 
-def test_get_current_user_missing_sub(borrow_modules, mock_db_session):
+@pytest.mark.asyncio
+async def test_get_current_user_missing_sub(borrow_modules, mock_db_session):
     security = borrow_modules.security
 
     with patch("jose.jwt.decode") as mock_decode:
         mock_decode.return_value = {}  # No sub
 
         with pytest.raises(HTTPException) as exc:
-            security.get_current_user(token="valid_token", db=mock_db_session)
+            await security.get_current_user(token="valid_token", db=mock_db_session)
         assert exc.value.status_code == 401
