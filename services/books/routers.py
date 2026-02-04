@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db
@@ -13,6 +14,8 @@ from security import (
     get_current_user,
     get_current_user_or_internal_api_key,
 )
+
+_logger = logging.getLogger(__name__)
 
 books_router = APIRouter(prefix="/books", tags=["books"])
 
@@ -56,6 +59,7 @@ async def list_books_endpoint(
     current_user=Depends(get_current_user),
 ) -> BookListOut:
     total, items = await list_books(db, page, page_size)
+    _logger.info(f"Listed {total} books for page {page} with page size {page_size}")
     return {"page": page, "page_size": page_size, "total": total, "results": items}
 
 

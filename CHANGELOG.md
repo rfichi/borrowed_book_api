@@ -8,9 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.8] - 2026-02-04
 
 ### Added
+- Added local development environment with Docker Compose and Nginx (mocking API Gateway).
+- Added local E2E testing script `scripts/local-e2e.ps1` with `-Build` and `-Alive` parameters.
+- Added `local-e2e` hook to `pre-commit` to enforce local E2E testing (with image build) before commits.
 - Expanded unit test coverage for `books`, `borrow`, and `users` services by adding specific tests for database connection and app lifespan events.
 - Converted `books`, `borrow`, and `users` service tests to use `pytest-asyncio` and `AsyncMock` consistent with other services.
 - Added `scripts/manual_deploy.ps1` for local manual build and deployment to Cloud Run.
+- Updated `README.md` with new architecture diagram, local development instructions, and CI/CD details; moved old README to `docs/README_V2.md`.
 
 ### Changed
 - Refactored  `books`, `borrow`, and `users` service base code and unit tests to be fully asynchronous.
@@ -19,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed database connection URL parsing to correctly enforce `postgresql+asyncpg` and `sqlite+aiosqlite` drivers.
 - Resolved `ValueError` in Borrow service by correcting the database URL string replacement logic.
 - Updated unit tests to correctly mock `create_async_engine` and verify driver replacement logic.
+- Fixed local E2E connectivity issues by aligning service ports (8080) and adding `restart: on-failure` to handle startup race conditions.
 
 ## [0.5.7] - 2026-02-03
 
