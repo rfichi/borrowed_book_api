@@ -85,6 +85,13 @@ steps:
     waitFor: ['build-borrow']
 
   # 5. Deploy Services (Parallel)
+  # Deploy API Gateway (Idempotent script)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args: ['scripts/deploy_gateway.sh', '${PROJECT_ID}']
+    id: 'deploy-gateway'
+    waitFor: ['-']
+
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args: [
@@ -144,11 +151,13 @@ steps:
     args:
       - -c
       - |
-        pip install httpx pytest
+        pip install httpx pytest pytest-asyncio
         pytest tests/e2e
     secretEnv: ['API_KEY']
+    env:
+      - 'DOCS_SERVICE_URL=https://docs-service-933812900131.us-central1.run.app'
     id: 'e2e-tests'
-    waitFor: ['deploy-users', 'deploy-books', 'deploy-borrow']
+    waitFor: ['deploy-users', 'deploy-books', 'deploy-borrow', 'deploy-docs', 'deploy-gateway']
 
 images:
   - 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/users-service:${SHORT_SHA}'

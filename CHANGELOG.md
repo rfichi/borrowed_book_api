@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2026-02-05
+
+### Added
+- **CI/CD**: Added `scripts/deploy_gateway.sh` and `scripts/deploy_gateway.ps1` for automated, idempotent API Gateway deployment.
+- **CI/CD**: Integrated API Gateway deployment step into `cloudbuild.yaml`.
+
 ## [0.6.0] - 2026-02-05
 
 ### Added
@@ -18,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **API Gateway**: Updated `api_gateway_config.yaml` to route `/docs` and `/openapi.json` endpoints to the new `docs` service.
 - **Scripts**: Renamed and reorganized utility scripts in `scripts/` directory for better clarity.
+- **CI/CD**: Updated Cloud Build E2E tests to target `docs-service` directly to ensure pipeline stability during Gateway updates.
+- **CI/CD**: Added `pytest-asyncio` to Cloud Build test environment to suppress configuration warnings.
+- **Scripts**: Added `scripts/update_gateway.ps1` for manual API Gateway updates.
 
 ## [0.5.8] - 2026-02-04
 
