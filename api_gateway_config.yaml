@@ -194,3 +194,55 @@ paths:
       responses:
         '202':
           description: Returned
+
+  # Open API Specs
+  /users/openapi.json:
+    get:
+      summary: Get Users Service OpenAPI Spec
+      operationId: getUsersSpec
+      x-google-backend:
+        address: https://users-service-933812900131.us-central1.run.app/openapi.json
+        path_translation: CONSTANT_ADDRESS
+        disable_auth: true
+      responses:
+        '200':
+          description: OpenAPI Spec
+
+  /books/openapi.json:
+    get:
+      summary: Get Books Service OpenAPI Spec
+      operationId: getBooksSpec
+      x-google-backend:
+        address: https://books-service-933812900131.us-central1.run.app/openapi.json
+        path_translation: CONSTANT_ADDRESS
+        disable_auth: true
+      responses:
+        '200':
+          description: OpenAPI Spec
+
+  /borrow/openapi.json:
+    get:
+      summary: Get Borrow Service OpenAPI Spec
+      operationId: getBorrowSpec
+      x-google-backend:
+        address: https://borrow-service-933812900131.us-central1.run.app/openapi.json
+        path_translation: CONSTANT_ADDRESS
+        disable_auth: true
+      responses:
+        '200':
+          description: OpenAPI Spec
+
+  # Docs Service
+  /docs:
+    get:
+      summary: API Documentation
+      operationId: getDocs
+      x-google-backend:
+        address: https://docs-service-933812900131.us-central1.run.app/docs
+        path_translation: CONSTANT_ADDRESS
+        disable_auth: true
+      responses:
+        '200':
+          description: Swagger UI
+
+# /docs/** removed

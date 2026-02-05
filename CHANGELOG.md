@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-02-05
+
+### Added
+- **Docs Service**: Implemented a dedicated `docs` service to host a centralized Swagger UI for all microservices (`users`, `books`, `borrow`).
+  - Aggregates OpenAPI specs from all services into a single UI.
+  - Secured with Basic Authentication (`admin`/`admin`).
+  - Deployed to Cloud Run and integrated with API Gateway.
+- **Local Development**: Integrated `docs` service into `docker-compose.yml` and `nginx.conf` for local development parity.
+- **Testing**: Added unit tests and E2E tests for the `docs` service (`tests/unit/docs`, `tests/e2e/test_docs.py`).
+
+### Changed
+- **API Gateway**: Updated `api_gateway_config.yaml` to route `/docs` and `/openapi.json` endpoints to the new `docs` service.
+- **Scripts**: Renamed and reorganized utility scripts in `scripts/` directory for better clarity.
+
 ## [0.5.8] - 2026-02-04
 
 ### Added
