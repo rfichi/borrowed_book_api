@@ -35,6 +35,18 @@ steps:
     id: 'build-borrow'
     waitFor: ['-'] # Start immediately
 
+  # 4. Build Docs Service Image (with caching)
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '--cache-from', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/docs-service:latest',
+      '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/docs-service:${SHORT_SHA}',
+      '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/docs-service:latest',
+      'services/docs'
+    ]
+    id: 'build-docs'
+    waitFor: ['-'] # Start immediately
+
   # 4. Push All Images (Parallel)
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/users-service:${SHORT_SHA}']
@@ -60,6 +72,12 @@ steps:
     args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/borrow-service:${SHORT_SHA}']
     id: 'push-borrow-sha'
     waitFor: ['build-borrow']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/docs-service:${SHORT_SHA}']
+    id: 'push-docs-sha'
+    waitFor: ['build-docs']
+
 
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/borrow-service:latest']
@@ -106,6 +124,20 @@ steps:
     id: 'deploy-borrow'
     waitFor: ['push-borrow-sha']
 
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', 'docs-service',
+      '--image', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/docs-service:${SHORT_SHA}',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--service-account', 'ai-assistant-cloud-run-sa@teak-strength-485420-v3.iam.gserviceaccount.com'
+    ]
+    id: 'deploy-docs'
+    waitFor: ['push-docs-sha']
+
+
   # 6. Run E2E Smoke Tests
   - name: 'python:3.10-slim'
     entrypoint: /bin/sh
@@ -125,6 +157,9 @@ images:
   - 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/books-service:latest'
   - 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/borrow-service:${SHORT_SHA}'
   - 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/borrow-service:latest'
+  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/docs-service:${SHORT_SHA}'
+  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/docs-service:latest'
+
 
 options:
   logging: CLOUD_LOGGING_ONLY

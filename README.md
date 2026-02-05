@@ -53,10 +53,10 @@ Use the provided PowerShell script to build and start the services. This script 
 
 ```powershell
 # Run E2E tests and tear down the environment afterwards
-.\scripts\local-e2e.ps1 -build
+.\scripts\run_local_e2e.ps1 -build
 
 # Run E2E tests and KEEP the environment running (useful for manual testing)
-.\scripts\local-e2e.ps1 -build -alive
+.\scripts\run_local_e2e.ps1 -build -alive
 ```
 
 *   **-build**: Forces a rebuild of the Docker images.
