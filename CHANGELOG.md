@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **API Gateway**: Updated `api_gateway_config.yaml` to route `/docs` and `/openapi.json` endpoints to the new `docs` service.
 - **Scripts**: Renamed and reorganized utility scripts in `scripts/` directory for better clarity.
+- **CI/CD**: Updated Cloud Build E2E tests to target `docs-service` directly to ensure pipeline stability during Gateway updates.
+- **CI/CD**: Added `pytest-asyncio` to Cloud Build test environment to suppress configuration warnings.
+- **Scripts**: Added `scripts/update_gateway.ps1` for manual API Gateway updates.
 
 ## [0.5.8] - 2026-02-04
 
