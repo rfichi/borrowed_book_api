@@ -36,10 +36,8 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-cov httpx
-          if [ -f services/${{ matrix.service }}/requirements.txt ]; then
-            pip install -r services/${{ matrix.service }}/requirements.txt
-          fi
+          pip install -r requirements-test.txt
+          pip install -r requirements.txt
 
       - name: Run Tests with Coverage
         env:
