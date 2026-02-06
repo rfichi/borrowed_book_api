@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Build**: Implemented shared `Dockerfile.builder` to cache common dependencies.
 - **Build**: Updated `cloudbuild.yaml` to build and cache the builder image first, then use it for all services.
 - **Build**: Refactored service Dockerfiles to consume the shared builder image, significantly reducing build times for repetitive builds.
+- **CI/CD**: Updated `ci-tests.yaml` to install both `requirements.txt` (production) and `requirements-test.txt` (testing) dependencies.
 
 ## [0.6.2] - 2026-02-05
 
