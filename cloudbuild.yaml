@@ -1,51 +1,74 @@
 steps:
-  # 1. Build Users Service Image (with caching)
+  # 1. Build Shared Builder Image
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
+      '--cache-from', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/builder:latest',
+      '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/builder:latest',
+      '-f', 'Dockerfile.builder',
+      '.'
+    ]
+    id: 'build-builder'
+    waitFor: ['-']
+
+  # 2. Push Builder Image (Required for subsequent steps to pull it as a base)
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/builder:latest']
+    id: 'push-builder'
+    waitFor: ['build-builder']
+
+  # 3. Build Services (Parallel)
+  # Users Service
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '--build-arg', 'BUILDER_IMAGE=us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/builder:latest',
       '--cache-from', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/users-service:latest',
       '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/users-service:${SHORT_SHA}',
       '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/users-service:latest',
       'services/users'
     ]
     id: 'build-users'
-    waitFor: ['-'] # Start immediately
+    waitFor: ['push-builder']
 
-  # 2. Build Books Service Image (with caching)
+  # Books Service
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
+      '--build-arg', 'BUILDER_IMAGE=us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/builder:latest',
       '--cache-from', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/books-service:latest',
       '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/books-service:${SHORT_SHA}',
       '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/books-service:latest',
       'services/books'
     ]
     id: 'build-books'
-    waitFor: ['-'] # Start immediately
+    waitFor: ['push-builder']
 
-  # 3. Build Borrow Service Image (with caching)
+  # Borrow Service
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
+      '--build-arg', 'BUILDER_IMAGE=us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/builder:latest',
       '--cache-from', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/borrow-service:latest',
       '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/borrow-service:${SHORT_SHA}',
       '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/borrow-service:latest',
       'services/borrow'
     ]
     id: 'build-borrow'
-    waitFor: ['-'] # Start immediately
+    waitFor: ['push-builder']
 
-  # 4. Build Docs Service Image (with caching)
+  # Docs Service
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
+      '--build-arg', 'BUILDER_IMAGE=us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/builder:latest',
       '--cache-from', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/docs-service:latest',
       '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/docs-service:${SHORT_SHA}',
       '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/docs-service:latest',
       'services/docs'
     ]
     id: 'build-docs'
-    waitFor: ['-'] # Start immediately
+    waitFor: ['push-builder']
 
   # 4. Push All Images (Parallel)
   - name: 'gcr.io/cloud-builders/docker'
@@ -74,15 +97,19 @@ steps:
     waitFor: ['build-borrow']
 
   - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/borrow-service:latest']
+    id: 'push-borrow-latest'
+    waitFor: ['build-borrow']
+
+  - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/docs-service:${SHORT_SHA}']
     id: 'push-docs-sha'
     waitFor: ['build-docs']
 
-
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/borrow-service:latest']
-    id: 'push-borrow-latest'
-    waitFor: ['build-borrow']
+    args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/docs-service:latest']
+    id: 'push-docs-latest'
+    waitFor: ['build-docs']
 
   # 5. Deploy Services (Parallel)
   # Deploy API Gateway (Idempotent script)
@@ -160,6 +187,7 @@ steps:
     waitFor: ['deploy-users', 'deploy-books', 'deploy-borrow', 'deploy-docs', 'deploy-gateway']
 
 images:
+  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/builder:latest'
   - 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/users-service:${SHORT_SHA}'
   - 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/users-service:latest'
   - 'us-central1-docker.pkg.dev/${PROJECT_ID}/borrow-api-repo/books-service:${SHORT_SHA}'

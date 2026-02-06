@@ -1,14 +1,5 @@
-# Multi-stage build for optimized image size
-FROM python:3.11-slim as builder
-
-WORKDIR /app
-
-# Install build dependencies if needed (e.g., for some python packages)
-# RUN apt-get update && apt-get install -y build-essential
-
-COPY requirements.txt .
-# Install dependencies into a temporary location
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+ARG BUILDER_IMAGE=us-central1-docker.pkg.dev/teak-strength-485420-v3/borrow-api-repo/builder:latest
+FROM ${BUILDER_IMAGE} AS builder
 
 # Final stage
 FROM python:3.11-slim
@@ -21,7 +12,7 @@ COPY --from=builder /install /usr/local
 # Copy application code
 COPY . .
 
-# Use non-root user for security (optional but recommended)
+# Use non-root user for security
 RUN useradd -m appuser && chown -R appuser:appuser /app
 USER appuser
 
