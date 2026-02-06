@@ -1,11 +1,5 @@
-# Multi-stage build for optimized image size
-FROM python:3.11-slim as builder
-
-WORKDIR /app
-
-COPY requirements.txt .
-# Install dependencies into a temporary location
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+ARG BUILDER_IMAGE=us-central1-docker.pkg.dev/teak-strength-485420-v3/borrow-api-repo/builder:latest
+FROM ${BUILDER_IMAGE} AS builder
 
 # Final stage
 FROM python:3.11-slim

@@ -15,10 +15,18 @@ services:
     networks:
       - borrow-network
 
+  builder:
+    build:
+      context: .
+      dockerfile: Dockerfile.builder
+    image: builder:latest
+
   users:
     build:
       context: ./services/users
       dockerfile: Dockerfile
+      args:
+        BUILDER_IMAGE: builder:latest
     image: users-service
     restart: on-failure
     environment:
@@ -30,6 +38,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      builder:
+        condition: service_completed_successfully
     networks:
       - borrow-network
 
@@ -37,6 +47,8 @@ services:
     build:
       context: ./services/books
       dockerfile: Dockerfile
+      args:
+        BUILDER_IMAGE: builder:latest
     image: books-service
     restart: on-failure
     environment:
@@ -48,6 +60,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      builder:
+        condition: service_completed_successfully
     networks:
       - borrow-network
 
@@ -55,6 +69,8 @@ services:
     build:
       context: ./services/borrow
       dockerfile: Dockerfile
+      args:
+        BUILDER_IMAGE: builder:latest
     image: borrow-service
     restart: on-failure
     environment:
@@ -72,6 +88,8 @@ services:
         condition: service_started
       books:
         condition: service_started
+      builder:
+        condition: service_completed_successfully
     networks:
       - borrow-network
 
@@ -79,10 +97,15 @@ services:
     build:
       context: ./services/docs
       dockerfile: Dockerfile
+      args:
+        BUILDER_IMAGE: builder:latest
     image: docs-service
     restart: on-failure
     ports:
       - "8004:8080"
+    depends_on:
+      builder:
+        condition: service_completed_successfully
     networks:
       - borrow-network
 
