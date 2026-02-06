@@ -200,6 +200,7 @@ paths:
     get:
       summary: Get Users Service OpenAPI Spec
       operationId: getUsersSpec
+      security: []
       x-google-backend:
         address: https://users-service-933812900131.us-central1.run.app/openapi.json
         path_translation: CONSTANT_ADDRESS
@@ -212,6 +213,7 @@ paths:
     get:
       summary: Get Books Service OpenAPI Spec
       operationId: getBooksSpec
+      security: []
       x-google-backend:
         address: https://books-service-933812900131.us-central1.run.app/openapi.json
         path_translation: CONSTANT_ADDRESS
@@ -224,6 +226,7 @@ paths:
     get:
       summary: Get Borrow Service OpenAPI Spec
       operationId: getBorrowSpec
+      security: []
       x-google-backend:
         address: https://borrow-service-933812900131.us-central1.run.app/openapi.json
         path_translation: CONSTANT_ADDRESS
@@ -237,6 +240,7 @@ paths:
     get:
       summary: API Documentation
       operationId: getDocs
+      security: []
       x-google-backend:
         address: https://docs-service-933812900131.us-central1.run.app/docs
         path_translation: CONSTANT_ADDRESS
