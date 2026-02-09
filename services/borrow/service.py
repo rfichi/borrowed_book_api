@@ -172,10 +172,36 @@ async def return_book(db: AsyncSession, book_id: int, user_id: int) -> BorrowRec
     record = result.scalars().first()
 
     if not record:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Active borrow record not found",
-        )
+        # Check for inconsistency: Book is marked borrowed in Books Service, but no record here.
+        # This can happen if the borrow process failed mid-way or data was manually altered.
+        try:
+            # Check if book is available. If it raises 403, it means it IS borrowed.
+            await validate_book_via_api(book_id)
+
+            # If we get here, the book is AVAILABLE.
+            # So it is not borrowed, and thus cannot be returned.
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Active borrow record not found",
+            )
+        except HTTPException as e:
+            if e.status_code == status.HTTP_403_FORBIDDEN:
+                # Book IS borrowed. We assume it corresponds to this user to allow recovery.
+                logger.warning(
+                    f"Inconsistency detected: Book {book_id} is borrowed but no record found for user {user_id}. "
+                    "Creating recovery record and proceeding with return."
+                )
+                record = BorrowRecord(
+                    user_id=user_id,
+                    book_id=book_id,
+                    borrowed_at=datetime.utcnow(),
+                    returned_at=None,
+                )
+                db.add(record)
+                # Proceed to return flow
+            else:
+                # Other errors (e.g. 404 Not Found, 503 Service Unavailable) should propagate
+                raise e
 
     # 3. Update Book Availability via API
     await update_book_availability_via_api(book_id, True)

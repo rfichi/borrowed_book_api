@@ -102,9 +102,53 @@ async def test_return_book_no_active_record(borrow_modules, mock_db_session):
     mock_db_session.execute.return_value = mock_result
 
     with patch("service.validate_user_via_api", new_callable=AsyncMock):
-        with pytest.raises(HTTPException) as exc:
-            await service.return_book(mock_db_session, 1, 1)
-        assert exc.value.status_code == 404
+        # We need to mock validate_book_via_api as well, since return_book now calls it
+        # If we return success (book available), it should raise 404
+        with patch(
+            "service.validate_book_via_api", new_callable=AsyncMock
+        ) as mock_validate_book:
+            mock_validate_book.return_value = {"is_available": True}
+
+            with pytest.raises(HTTPException) as exc:
+                await service.return_book(mock_db_session, 1, 1)
+            assert exc.value.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_return_book_inconsistency_recovery(borrow_modules, mock_db_session):
+    service = borrow_modules.service
+    # models = borrow_modules.models  # Removed unused import
+
+    user_id = 1
+    book_id = 1
+
+    # Mock db.execute(select(...)) returning None (No active record)
+    mock_result = MagicMock()
+    mock_result.scalars.return_value.first.return_value = None
+    mock_db_session.execute.return_value = mock_result
+
+    with patch("service.validate_user_via_api", new_callable=AsyncMock):
+        # Mock validate_book_via_api to raise 403 (Book IS borrowed)
+        with patch(
+            "service.validate_book_via_api",
+            side_effect=HTTPException(
+                status_code=403, detail="Book is already borrowed"
+            ),
+            new_callable=AsyncMock,
+        ):
+            with patch(
+                "service.update_book_availability_via_api", new_callable=AsyncMock
+            ) as mock_update_book:
+                result = await service.return_book(mock_db_session, book_id, user_id)
+
+                # Should create a record and return it
+                assert result.user_id == user_id
+                assert result.book_id == book_id
+                assert result.returned_at is not None
+
+                # Verify recovery flow
+                mock_db_session.add.assert_called()  # Called twice (create + update)
+                mock_update_book.assert_called_once_with(book_id, True)
 
 
 @pytest.mark.asyncio

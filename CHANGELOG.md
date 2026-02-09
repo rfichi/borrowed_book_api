@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.4] - 2026-02-09
+
+### Fixed
+- **Borrow Service**: Implemented self-healing logic in `return_book` to handle inconsistency where a book is marked as borrowed but no active borrow record exists.
+- **Borrow Service**: Added automatic recovery record creation when returning "phantom" borrowed books.
+
 ## [0.6.3] - 2026-02-06
 
 ### Added
